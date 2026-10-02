@@ -1,0 +1,2 @@
+# Vector tile payloads must never undergo text or line-ending conversion.
+*.pbf binary
