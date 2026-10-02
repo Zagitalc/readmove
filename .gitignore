@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.worker-check/
+.wrangler/
+.env
+.env.*
+.dev.vars
+raw/
+test-results/
+playwright-report/
+*.patch
