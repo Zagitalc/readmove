@@ -9,3 +9,5 @@ raw/
 test-results/
 playwright-report/
 *.patch
+
+__pycache__/

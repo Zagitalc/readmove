@@ -99,6 +99,7 @@ test("example, provenance, sample transactions and comparison work", async ({
   await expect(page.locator(".comparable-list button")).toHaveCount(0);
   await expect(page.locator("#details")).toContainText("No sample sales match");
   await expect(page.locator(".comparison-pin")).toHaveCount(0);
+  await expect(page.locator(".sale-pin")).toHaveCount(0);
   await page.locator("#sales-type").selectOption("terraced");
   await expect(page.locator(".comparable-list button")).toHaveCount(2);
   await page
@@ -391,30 +392,31 @@ test("official UPRN matches are searchable identifiers and do not become fabrica
   await ready(page);
   await page.getByRole("button", { name: "Sold prices", exact: true }).click();
   await expect(page.locator("#sold-location-status")).toContainText(
-    "100 transactions have an official UPRN · 0 have verified coordinates",
+    "246 transactions have an official UPRN · 246 have verified coordinates",
   );
   await page.locator("#sold-category").selectOption("");
   await page.getByLabel("Only with an official UPRN").check();
   await expect(page.locator("#sold-count")).toHaveText(
-    "100 transactions · showing 20",
+    "246 transactions · showing 20",
   );
   const first = page.locator("#sold-results .sold-record").first();
   await first.getByText("Transaction reference", { exact: true }).click();
-  await expect(first.locator(".sale-uprn")).toHaveText("10009203959");
-  await expect(first).toContainText("coordinates pending");
+  await expect(first.locator(".sale-uprn")).toHaveText("10024050728");
+  await expect(first).toContainText("official OS coordinate");
   await expect(page.locator(".comparison-pin")).toHaveCount(0);
+  await expect(page.locator(".sale-pin")).toHaveCount(177);
   await page.getByRole("button", { name: "Close sold prices" }).click();
   await page.getByRole("button", { name: "Sold prices", exact: true }).click();
   await expect(page.getByLabel("Only with an official UPRN")).toBeChecked();
   await expect(page.locator("#sold-count")).toHaveText(
-    "100 transactions · showing 20",
+    "246 transactions · showing 20",
   );
 });
 
 test("a mismatched UPRN asset cannot attach identifiers to a different price snapshot", async ({
   page,
 }) => {
-  await page.route("**/data/sale-locations.v1.json", async (route) => {
+  await page.route("**/data/sale-locations.v2.json", async (route) => {
     const response = await route.fetch();
     const data = await response.json();
     data.salesAssetSha256 = "0".repeat(64);
@@ -428,10 +430,10 @@ test("a mismatched UPRN asset cannot attach identifiers to a different price sna
   await expect(page.getByLabel("Only with an official UPRN")).toBeDisabled();
   await expect(page.locator("#sold-results .sold-record")).toHaveCount(20);
   await page.getByRole("button", { name: "Close sold prices" }).click();
-  await page.unroute("**/data/sale-locations.v1.json");
+  await page.unroute("**/data/sale-locations.v2.json");
   await page.getByRole("button", { name: "Sold prices", exact: true }).click();
   await expect(page.locator("#sold-location-status")).toContainText(
-    "100 transactions have an official UPRN",
+    "246 transactions have an official UPRN",
   );
   await expect(page.getByLabel("Only with an official UPRN")).toBeEnabled();
 });

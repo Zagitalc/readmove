@@ -1460,3 +1460,95 @@ dialog .provenance {
 .sold-identifier-filter input {
   accent-color: var(--green);
 }
+
+/* Fixed panel chrome; only the content scrolls, including on short mobile screens. */
+#official-sales {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#official-sales[hidden] {
+  display: none;
+}
+.sold-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px 5px 22px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+}
+#sold-close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+}
+#sold-close svg {
+  width: 19px;
+  height: 19px;
+}
+.sold-body {
+  padding: 18px 22px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+.sold-body h2 {
+  overflow-wrap: anywhere;
+}
+.sale-select {
+  display: block;
+  margin-top: 10px;
+  min-height: 44px;
+  font-size: 12px;
+}
+#sold-back {
+  min-height: 44px;
+}
+#sold-since {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+#sold-query:disabled {
+  color: var(--muted);
+  background: var(--soft);
+}
+.sale-pin {
+  width: 22px;
+  height: 22px;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: #3e705c;
+  box-shadow: 0 1px 6px #20392c66;
+}
+.sale-pin.selected {
+  background: #9f6136;
+  width: 28px;
+  height: 28px;
+  z-index: 1;
+}
+.sale-pin:focus-visible {
+  outline: 3px solid #173f30;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  #official-sales {
+    max-height: min(50dvh, max(140px, calc(100dvh - 490px)));
+  }
+  #sold-query,
+  #sold-since {
+    font-size: 16px;
+  }
+}
