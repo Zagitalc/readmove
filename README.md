@@ -80,3 +80,7 @@ Application code is MIT under [LICENSE](LICENSE). Geography is a separate ODbL d
 Open **Sold prices** for 6,325 real residential transactions from HM Land Registry's 2025 annual file in selected Reading-area postcode districts. Search addresses/postcodes and filter type/category. This is partial history, with no verified building links, map pins or valuation claims. The separate map demo remains fictional.
 
 The official download succeeded on 3 October 2026. Source file updated 28 September 2026; 6,593 postcode candidates audited, 268 type Other excluded from the residential display. No paid data service, API key or live visitor API call is needed. [Reproduction, audit and licence details](docs/sold-prices.md).
+
+## Official UPRN matching
+
+Stage 5 adds 100 exact official transaction-to-UPRN matches, with an **Only with an official UPRN** filter and identifier details. The August 2026 monthly lookup covers only about 1.6% of the bundled 2025 sales. Coordinates remain pending because the OS download hosts are blocked in the current runtime. No new pins or real spatial comparisons are claimed. [Audit, reproduction and remaining network step](docs/uprn-matching.md).

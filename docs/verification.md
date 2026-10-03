@@ -1,3 +1,14 @@
+# Stage 5 — exact UPRN identifiers, coordinates pending
+
+- Downloaded and validated all 84,149 rows of the official August 2026 transaction-to-UPRN CSV. Its pinned SHA-256 and provenance accompany the versioned join asset.
+- 100 exact matches to the 6,325 residential sales; 6,225 unmatched, zero conflicting or duplicate matched rows. An independent Python CSV check confirmed all 100 published pairs. Regeneration is byte-identical.
+- 35 unit tests pass; production TypeScript/Vite build passes with the existing size warning. Tests include ambiguous IDs, malformed UPRNs, source failures and rejection of coordinates without evidence.
+- Eight relevant desktop/mobile browser checks pass: sold-price search, load recovery, UPRN filtering/details, and rejection/recovery of a lookup with the wrong sales-file hash. Unchanged map regression flows were last fully run at stage 4.
+- `www.ordnancesurvey.co.uk` and `api.os.uk` requests return proxy HTTP 403. Saved network additions have not enabled runtime access. No OS coordinate file, real sale map pins or real distance-based comparisons are claimed.
+- Incremental handoff applies after stage 4 (including the equivalent combined 3-and-4 patch); packaging checks clean application and byte equality. No commits, pushes or deployments.
+
+---
+
 # Stage 4 — real official-source data
 
 - Downloaded the official 2025 annual Price Paid CSV over verified HTTPS on 3 October 2026: 169,648,191 bytes; source file Last-Modified 28 September 2026. Source SHA-256 and publisher links accompany the bundled audit.

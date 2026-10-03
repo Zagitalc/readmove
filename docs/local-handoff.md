@@ -1,3 +1,23 @@
+# Apply stage 5 after stage 4
+
+`readmove-stage5.patch` adds the official UPRN identifier join, audit, app filter and tests. It applies to either the sequential stage-3/stage-4 result or the combined stage-3-and-4 patch; their final files are identical.
+
+```sh
+git apply --check /path/to/readmove-stage5.patch
+git apply /path/to/readmove-stage5.patch
+npm test
+npm run build
+npm run dev
+```
+
+Open Sold prices → Both categories → Only with an official UPRN. Expect 100 transactions; expand Transaction reference to see UPRN. Coordinates remain pending, so this patch adds no map pins. [The remaining OS download prerequisite](uprn-matching.md) is separate from applying the patch.
+
+Suggested commit: `Match sold transactions to official UPRN identifiers`
+
+Nothing committed, pushed or deployed. Resolve any local conflicts before applying; do not force-overwrite.
+
+---
+
 # Apply stage 4 after stage 3
 
 The incremental `readmove-stage4.patch` includes the real 2025 residential sale subset, its source audit, a searchable Sold prices panel, reproducible preparation and tests. It contains no national CSV, secret or paid dependency.
