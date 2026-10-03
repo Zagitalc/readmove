@@ -1449,3 +1449,14 @@ dialog .provenance {
     padding-right: 10px;
   }
 }
+
+.sold-identifier-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  margin: 14px 0;
+}
+.sold-identifier-filter input {
+  accent-color: var(--green);
+}

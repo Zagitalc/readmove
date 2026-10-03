@@ -18,7 +18,8 @@
     "cf:deploy": "npm run build && wrangler deploy",
     "data:sales": "tsx scripts/property/import.ts",
     "data:sales:official": "tsx scripts/property/official.ts",
-    "data:sales:prepare": "tsx scripts/property/prepare.ts"
+    "data:sales:prepare": "tsx scripts/property/prepare.ts",
+    "data:sales:uprn": "tsx scripts/property/prepare-uprn.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",

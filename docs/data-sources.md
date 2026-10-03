@@ -64,3 +64,7 @@ No personal occupant records, resident profiles, private household income estima
 Implemented: `scripts/property/official.ts` downloads supported official HTTPS CSVs, retains a SHA-256 receipt and generates an import/coverage audit. Monthly changes require an earlier annual/complete baseline. This is a pipeline capability, **not an incorporated dataset**.
 
 Downloaded and audited on 3 October 2026: 974,087 national rows; 6,593 retained postcode candidates; 6,325 residential display records after excluding type Other. Source file Last-Modified: 28 September 2026. No coordinate matches. See [the source audit and reproduction guide](sold-prices.md). The regional asset and audit are bundled; original national data stays ignored. GOV.UK terms permit address display for residential property price information, subject to acknowledgement. The National Archives page itself still returned HTTP 403; publisher terms were successfully read.
+
+## Transaction-to-UPRN lookup (implemented, coordinates pending)
+
+The August 2026 official monthly file provides 100 exact identifier joins to the 6,325 residential sales; 6,225 remain unmatched. Zero conflicting joins. The separately versioned asset is bound to the sale-file checksum and includes both required attributions. The UI can filter identified transactions and show UPRNs. OS coordinate download is blocked by the running cloud network policy; no real map pins or building associations were added. See [uprn-matching.md](uprn-matching.md).

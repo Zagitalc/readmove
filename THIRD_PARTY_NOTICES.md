@@ -31,4 +31,16 @@ The residential transaction subset in `public/data/sales-2025.v1.json` is derive
 Publisher conditions: https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data
 OGL v3.0: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
 
-OGL does not cover all third-party address rights. The publisher says Royal Mail and Ordnance Survey permit personal/non-commercial use and display for residential property price information services. This app uses the latter purpose; type Other is excluded from display. Do not repurpose this subset as a general address directory. Other address uses require the relevant permission. No UPRN lookup or OS coordinate product is redistributed in this release.
+OGL does not cover all third-party address rights. The publisher says Royal Mail and Ordnance Survey permit personal/non-commercial use and display for residential property price information services. This app uses the latter purpose; type Other is excluded from display. Do not repurpose this subset as a general address directory. Other address uses require the relevant permission. The UPRN lookup subset is described below; no OS coordinate product is redistributed in this release.
+
+## HM Land Registry transaction-to-UPRN lookup
+
+The 100 identifier pairs in `public/data/sale-locations.v1.json` are derived from the official August 2026 monthly lookup, retrieved 3 October 2026.
+
+Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0.
+
+UPRNs contain OS data © Crown copyright and database rights 2026. This data is licensed under the Open Government Licence v3.0.
+
+Source and conditions: https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset
+
+Combined use with Price Paid addresses remains subject to their address conditions. Identifiers do not establish coordinates, property boundaries, occupants or ownership.
