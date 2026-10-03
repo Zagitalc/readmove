@@ -257,3 +257,33 @@ describe("source-aware comparable filters", () => {
     expect(rows.map((r) => r.id)).toEqual(["near", "far"]);
   });
 });
+
+it("audits national input separately from retained regional candidates", async () => {
+  const missing = [...base],
+    outside = [...base],
+    correction = [...base];
+  missing[0] = "{00000000-0000-0000-0000-000000000003}";
+  missing[3] = "";
+  outside[0] = id2;
+  outside[3] = "SW1A 1AA";
+  correction[15] = "C";
+  const result = await ingestPpd(
+    input([
+      base,
+      missing,
+      outside,
+      correction,
+      [id, ...Array(14).fill(""), "D"],
+    ]),
+    options,
+  );
+  expect(result.importAudit).toEqual({
+    rows: 5,
+    actions: { A: 3, C: 1, D: 1 },
+    candidateRows: 2,
+    missingPostcodeRows: 1,
+    otherPostcodeRows: 1,
+    removedExistingRecords: 1,
+  });
+  expect(result.records).toEqual([]);
+});

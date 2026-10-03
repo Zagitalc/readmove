@@ -320,3 +320,67 @@ test("details fit the viewport and sources remain accessible", async ({
   await page.getByRole("button", { name: "Close sources" }).click();
   await expect(page.getByRole("dialog")).toBeHidden();
 });
+
+test("official sold prices search real addresses without moving the map or mixing examples", async ({
+  page,
+}, testInfo) => {
+  await ready(page);
+  const before = await page.evaluate(
+    () => window.__readmove.snapshot().camera.centre,
+  );
+  await page.getByRole("button", { name: "Sold prices", exact: true }).click();
+  const panel = page.getByRole("region", {
+    name: "Official sold prices",
+    exact: true,
+  });
+  await expect(
+    panel.getByRole("heading", { name: "Official sold prices" }),
+  ).toBeVisible();
+  await expect(panel).toContainText("6,325 residential transactions");
+  await expect(panel).toContainText("not yet matched to map buildings");
+  await expect(page.locator("#sold-results .sold-record")).toHaveCount(20);
+  await page.getByLabel("Search sold addresses").fill("RG315NQ");
+  await expect(page.locator("#sold-results")).toContainText("WOODBRIDGE ROAD");
+  await expect(page.locator("#sold-results")).toContainText("£360,000");
+  await page.getByLabel("Search sold addresses").fill("ZZ99 impossible");
+  await expect(panel).toContainText("No transactions match");
+  await page.getByLabel("Search sold addresses").fill("");
+  await page.locator("#sold-type").selectOption("flat");
+  await page.locator("#sold-category").selectOption("B");
+  const records = page.locator("#sold-results .sold-record");
+  await expect(records.first()).toContainText("Category B");
+  await expect(records.first()).toContainText("flat");
+  await expect(panel).toContainText("Contains HM Land Registry data");
+  expect(
+    await page.evaluate(() => window.__readmove.snapshot().camera.centre),
+  ).toEqual(before);
+  const box = await panel.boundingBox(),
+    viewport = page.viewportSize()!;
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+  await page.screenshot({
+    path: testInfo.outputPath("official-sold-prices.png"),
+  });
+  await page.getByRole("button", { name: "Close sold prices" }).click();
+  await expect(panel).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: "Sold prices", exact: true }),
+  ).toBeFocused();
+});
+
+test("official price loading failure can be retried without closing the map", async ({
+  page,
+}) => {
+  await page.route("**/data/sales-2025.v1.json", (route) =>
+    route.fulfill({ status: 503, body: "Unavailable" }),
+  );
+  await ready(page);
+  await page.getByRole("button", { name: "Sold prices", exact: true }).click();
+  await expect(page.locator("#official-sales")).toContainText("could not load");
+  await expect(page.locator("#map")).toHaveAttribute("data-ready", "true");
+  await page.getByRole("button", { name: "Close sold prices" }).click();
+  await page.unroute("**/data/sales-2025.v1.json");
+  await page.getByRole("button", { name: "Sold prices", exact: true }).click();
+  await expect(page.locator("#sold-results .sold-record")).toHaveCount(20);
+});

@@ -22,7 +22,7 @@ Vite serves port 5173. Geography is already bundled. For a production build, run
 - Restrained light map styling, sparse local labels, keyboard search, clickable buildings and desktop/mobile detail panels.
 - Source height precedence: tagged height → mapped storeys × 3 m → deterministic building-category estimate. Each selection identifies the basis. Small suitable residential footprints receive procedural pitched roofs and illustrative windows; complex footprints retain flat roofs and courtyards.
 - Explicit separation of mapped building identity, property identity, UPRN joins and transactions.
-- A streaming HM Land Registry CSV importer with corrections/deletions, file checksums, candidate-area filtering and documented coordinate joins. No real sale dataset is shipped or automatically published.
+- A streaming HM Land Registry CSV importer with corrections/deletions, file checksums, candidate-area filtering and documented coordinate joins. A reviewed 2025 residential subset is now bundled for address search; no geographic joins or automatic publication.
 - Comparable-sale filters for distance, type and recency in the example UI; the shared engine also supports price limits and excludes future transactions and fixture/real-data mixing.
 - Streamed nearby 3D building chunks, worker-generated geometry, mobile/desktop memory budgets, cancellation and explicit retry. Self-hosted vector buildings remain visible while detailed roofs load.
 - Wider-area search across 49,490 names/addresses; a whole-area overview and visible loading/coverage status.
@@ -74,3 +74,9 @@ See [architecture](docs/architecture.md), [reference review](docs/reference-revi
 Next milestones: ingest an actual monthly Price Paid release using the implemented importer; audit/verify UPRN links and publish a bounded sale index; bring in official statistical areas, school and environmental sources; add relevant-sale filters; selectively load glTF assets. National coverage, portal scraping, personal resident data, crime maps and household income inference are outside this prototype.
 
 Application code is MIT under [LICENSE](LICENSE). Geography is a separate ODbL database; see [third-party notices](THIRD_PARTY_NOTICES.md). Mini Reading was inspected as a read-only architectural reference, not cloned or modified.
+
+## Official sold prices
+
+Open **Sold prices** for 6,325 real residential transactions from HM Land Registry's 2025 annual file in selected Reading-area postcode districts. Search addresses/postcodes and filter type/category. This is partial history, with no verified building links, map pins or valuation claims. The separate map demo remains fictional.
+
+The official download succeeded on 3 October 2026. Source file updated 28 September 2026; 6,593 postcode candidates audited, 268 type Other excluded from the residential display. No paid data service, API key or live visitor API call is needed. [Reproduction, audit and licence details](docs/sold-prices.md).

@@ -14,6 +14,8 @@ import { renderComparison, renderDetails, provenanceHtml } from "./ui/details";
 import { connectSearch } from "./ui/search";
 import { escapeHtml, icon, notice, shell } from "./ui/shell";
 
+import { connectSoldPrices } from "./ui/sold-prices";
+
 shell();
 const element = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
@@ -83,7 +85,13 @@ async function start(): Promise<void> {
     notice("A local map asset failed to load. Reload to try again."),
   );
 
+  const soldPrices = connectSoldPrices(() => {
+    closePanels();
+    intro.hidden = true;
+  });
+
   function closePanels(): void {
+    soldPrices.close();
     selectionRequest++;
     details.removeAttribute("aria-busy");
     details.hidden = true;
@@ -95,6 +103,7 @@ async function start(): Promise<void> {
   }
   function showDetail(): void {
     if (!selected) return;
+    soldPrices.close();
     details.innerHTML = renderDetails(
       selected,
       geography,
@@ -213,6 +222,7 @@ async function start(): Promise<void> {
     select(demo.buildingId);
   }
   function showComparison(): void {
+    soldPrices.close();
     comparison.innerHTML = renderComparison(
       [...saved].map((id) => savedRecords.get(id)!),
     );
@@ -338,11 +348,12 @@ async function start(): Promise<void> {
   }
   const dialog = element<HTMLDialogElement>("#sources-dialog");
   element("#sources-content").innerHTML =
-    `<div class="eyebrow">THE SMALL PRINT, IN PLAIN SIGHT</div><h2>Know what you’re looking at.</h2><p>readmove is an independent property and neighbourhood research prototype. There are no live listings or verified sale records in this release.</p>
+    `<div class="eyebrow">THE SMALL PRINT, IN PLAIN SIGHT</div><h2>Know what you’re looking at.</h2><p>readmove is an independent property and neighbourhood research prototype. There are no live listings. The Sold prices panel contains real HM Land Registry transactions from the 2025 annual file, separately from the fictional map examples.</p>
     <h3>Real geography</h3><p>${geography.buildingCount.toLocaleString("en-GB")} OpenStreetMap building footprints, roads, water and railways in a bounded greater Reading snapshot. Redistributed from Mini Reading’s ODbL dataset; this is a separate application.</p>${provenanceHtml(geography.provenance)}
     <h3>Illustrative architecture</h3><p>Height uses mapped measurements, mapped storeys, or a deterministic estimate. The panel tells you which. Residential roofs, windows and materials are procedural, not a reconstruction. Flat ground; no surveyed terrain or property boundaries.</p>
     <h3>Clearly marked fixtures</h3><p>Example sale prices, transaction dates and property links are fictional. Neighbourhood polygons and population figures are also fictional; they are not official LSOAs. No fixture is a statement about a real resident or property.</p>
-    <h3>Not connected yet</h3><p>HM Land Registry Price Paid Data, UPRN joins, EPCs, ONS Census, schools and Environment Agency flood mapping. School proximity will not imply admission eligibility, and flood polygons will not become unsupported property risk scores.</p>
+    <h3>Official sold prices</h3><p>6,325 residential transactions in selected Reading-area postcode districts. Partial history; postcode coverage is not exact map coverage. No sale is yet linked to a map building. Source file updated 28 September 2026. Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0. <a href="https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data" target="_blank" rel="noopener">Source and address-data terms ↗</a></p>
+    <h3>Not connected yet</h3><p>UPRN joins, EPCs, ONS Census, schools and Environment Agency flood mapping. School proximity will not imply admission eligibility, and flood polygons will not become unsupported property risk scores.</p>
     <p class="fine-note">No tracking, resident profiles, portal scraping or external map requests. Geography: ODbL 1.0. App: MIT. <a href="/data/provenance.json" target="_blank" rel="noopener">Dataset manifest ↗</a></p>`;
   element("#about").onclick = () => dialog.showModal();
   element("#sources-close").onclick = () => dialog.close();
@@ -355,7 +366,8 @@ async function start(): Promise<void> {
       return;
     element("#layers-panel").hidden = true;
     element("#layers-button").setAttribute("aria-expanded", "false");
-    if (!details.hidden || !comparison.hidden) closePanels();
+    if (!details.hidden || !comparison.hidden || soldPrices.isOpen())
+      closePanels();
   });
   window.addEventListener("pagehide", () => controller.destroy(), {
     once: true,

@@ -22,6 +22,13 @@ readmove's fictional transaction/property associations and illustrative populati
 
 MapLibre GL JS is BSD-3-Clause; Three.js and Zod are MIT. Dependency licences and notices are retained in their installed npm packages. Consult the pinned lockfile and dependency packages for the full transitive list. These notices do not grant permission to obtain or redistribute future commercial listing data.
 
-## Future Price Paid Data imports
+## HM Land Registry Price Paid Data
 
-The repository ships no real Price Paid records. For legitimate HM Land Registry imports, retain the applicable OGL v3.0 terms and acknowledgement: “Contains HM Land Registry data © Crown copyright and database right [year]”. The importer records the source date and licence; the publication pipeline must render the appropriate year and source link. CSV parsing does not authenticate an input file or grant data redistribution rights. See https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads.
+Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0.
+
+The residential transaction subset in `public/data/sales-2025.v1.json` is derived from the official 2025 annual CSV, retrieved 3 October 2026. The source receipt/checksum and coverage counts are in `public/data/sales-2025.audit.json`. This dataset is separate from the MIT app and ODbL geography.
+
+Publisher conditions: https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data
+OGL v3.0: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+
+OGL does not cover all third-party address rights. The publisher says Royal Mail and Ordnance Survey permit personal/non-commercial use and display for residential property price information services. This app uses the latter purpose; type Other is excluded from display. Do not repurpose this subset as a general address directory. Other address uses require the relevant permission. No UPRN lookup or OS coordinate product is redistributed in this release.

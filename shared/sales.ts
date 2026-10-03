@@ -41,7 +41,21 @@ export const saleMatchSchema = z
     "An official UPRN lookup must supply its UPRN",
   );
 export type SaleMatch = z.infer<typeof saleMatchSchema>;
+export const importAuditSchema = z.object({
+  rows: z.number().int().nonnegative(),
+  actions: z.object({
+    A: z.number().int().nonnegative(),
+    C: z.number().int().nonnegative(),
+    D: z.number().int().nonnegative(),
+  }),
+  candidateRows: z.number().int().nonnegative(),
+  missingPostcodeRows: z.number().int().nonnegative(),
+  otherPostcodeRows: z.number().int().nonnegative(),
+  removedExistingRecords: z.number().int().nonnegative(),
+});
+export type ImportAudit = z.infer<typeof importAuditSchema>;
 export const salesSnapshotSchema = z.object({
+  importAudit: importAuditSchema.optional(),
   version: z.literal(1),
   sourceDate: z.iso.date(),
   candidateOutcodes: z.array(z.string()),

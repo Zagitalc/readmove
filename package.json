@@ -16,7 +16,9 @@
     "cf:check": "npm run build && wrangler deploy --dry-run --outdir .worker-check",
     "cf:dev": "wrangler dev",
     "cf:deploy": "npm run build && wrangler deploy",
-    "data:sales": "tsx scripts/property/import.ts"
+    "data:sales": "tsx scripts/property/import.ts",
+    "data:sales:official": "tsx scripts/property/official.ts",
+    "data:sales:prepare": "tsx scripts/property/prepare.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",

@@ -26,6 +26,7 @@ export function shell(): void {
       <button data-mode="explore" aria-pressed="true">Explore</button>
       <button data-mode="property" aria-pressed="false">Property</button>
       <button data-mode="neighbourhood" aria-pressed="false">Neighbourhood <span class="tiny-tag">DEMO</span></button>
+      <button id="sold-open" aria-expanded="false" aria-controls="official-sales">Sold prices</button>
     </nav>
     <aside id="intro" class="intro">
       <div class="eyebrow"><span class="dot"></span> A CLOSER LOOK AT READING</div>
@@ -37,6 +38,7 @@ export function shell(): void {
       <span class="map-hint">Click a building to take a closer look.</span>
     </aside>
     <section id="details" class="details" aria-label="Building details" hidden></section>
+    <section id="official-sales" class="details" aria-label="Official sold prices" hidden></section>
     <section id="comparison" class="details" aria-label="Saved building comparison" hidden></section>
     <div class="map-controls">
       <button id="layers-button" aria-label="Map layers" aria-expanded="false" aria-controls="layers-panel">${icon("layers")}</button>

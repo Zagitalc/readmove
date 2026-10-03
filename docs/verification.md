@@ -1,3 +1,17 @@
+# Stage 4 — real official-source data
+
+- Downloaded the official 2025 annual Price Paid CSV over verified HTTPS on 3 October 2026: 169,648,191 bytes; source file Last-Modified 28 September 2026. Source SHA-256 and publisher links accompany the bundled audit.
+- Streamed 974,087 rows; retained 6,593 postcode candidates, all unlocated. Type Other exclusion leaves 6,325 residential display records. Independent Python CSV comparison verified every retained ID/price/date/postcode, with zero mismatches or duplicate retained IDs.
+- Reviewed GOV.UK download, yearly, field-definition and transaction-to-UPRN pages. Address-display conditions and OGL attribution are retained. The National Archives OGL page itself returned HTTP 403; publisher licence conditions were readable.
+- Rebuilt the residential asset from the pinned raw CSV, revalidated snapshot records/audit and obtained byte-identical output. National CSV remains ignored.
+- 32 unit tests pass. TypeScript and Vite build pass; the existing bundle-size warning remains.
+- 16 desktop/mobile browser tests pass, covering map regression, real address/type/category search, no camera movement, viewport bounds, source attribution and failed-load recovery.
+- The handoff patch is checked against the preserved stage-3 baseline, applied to a temporary copy and compared byte-for-byte with the deliverable. Nothing committed, pushed or deployed.
+
+Earlier checks below are historical evidence, not the current source availability status.
+
+---
+
 # Verification
 
 Validated in the cloud workspace using Node 24.19.0, npm 11.9.0 and system Chromium with Playwright's software WebGL configuration.
@@ -24,3 +38,12 @@ Wrangler's local runtime could not fetch external `Request.cf` metadata through 
 No official transaction/UPRN/EPC/Census/school/flood integrations are claimed. Those are documented extension points; fixture data remains visibly fictional. Nothing was published or deployed to a remote Cloudflare account.
 
 The sold-price CLI was additionally exercised with an explicitly fictional CSV outside the public asset tree: it retained one candidate, reported zero geographic matches and did not infer a building. Actual national/monthly publisher files, genuine identifier-match quality, official sale publication and production deployment remain untested. The full browser suite passed; the strengthened overview readiness checks were rerun on both desktop and mobile after inspection of an early-loading screenshot.
+
+## Stage 3 — official source workflow
+
+- 30 unit tests pass, including source URL/scope validation, monthly-baseline/date checks, receipt consistency, row-level import auditing and explicit unmatched coverage.
+- TypeScript and production Vite build pass. The existing bundle-size warning remains.
+- CLI help runs. A separate synthetic transport smoke check exercised annual download/import/receipt/audit, monthly correction with retained baseline, existing-output refusal and malformed-input cleanup. This does not verify the live publisher schema or current terms.
+- Actual official-host access fails with proxy HTTP 403. The failed CLI download leaves neither an output dataset nor temporary files. No official release/date/terms or actual sale records were verified.
+- Browser flows were not rerun for this data-tooling-only change; no browser or map code changed. Stage-2 browser evidence remains above.
+- The patch is incremental against stage 2; clean application and byte comparison are checked during packaging. No commit, push or deployment.

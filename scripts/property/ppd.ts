@@ -11,6 +11,7 @@ import {
   type LandRegistryRecord,
   type SaleMatch,
   type SalesSnapshot,
+  type ImportAudit,
 } from "../../shared/sales";
 
 const typeMap: Record<string, Transaction["type"]> = {
@@ -114,6 +115,7 @@ export async function ingestPpd(
     outcodes: string[];
     previous?: unknown;
     links?: unknown;
+    provenance?: Provenance;
   },
 ): Promise<SalesSnapshot> {
   z.iso.date().parse(options.sourceDate);
@@ -129,7 +131,7 @@ export async function ingestPpd(
     throw new Error(
       "Previous snapshot coverage differs; rebuild it explicitly",
     );
-  const provenance: Provenance = {
+  const provenance: Provenance = options.provenance ?? {
     source: "HM Land Registry Price Paid Data · user-supplied file",
     date: options.sourceDate,
     license: "OGL v3.0",
@@ -155,11 +157,28 @@ export async function ingestPpd(
   parser.on("close", () => source.destroy());
   source.pipe(parser);
   const changedAddress = new Set<string>();
+  const audit: ImportAudit = {
+    rows: 0,
+    actions: { A: 0, C: 0, D: 0 },
+    candidateRows: 0,
+    missingPostcodeRows: 0,
+    otherPostcodeRows: 0,
+    removedExistingRecords: 0,
+  };
   let rowNumber = 0;
   for await (const row of parser) {
     rowNumber++;
     try {
       const change = parsePpdRow(row as string[], provenance);
+      audit.rows++;
+      audit.actions[change.action]++;
+      if (change.record) {
+        const postcode = change.record.address.postcode;
+        if (!postcode) audit.missingPostcodeRows++;
+        else if (options.outcodes.includes(postcode.split(" ")[0]))
+          audit.candidateRows++;
+        else audit.otherPostcodeRows++;
+      }
       const old = records.get(change.id);
       if (
         old &&
@@ -168,6 +187,7 @@ export async function ingestPpd(
       )
         changedAddress.add(change.id);
       applyPpdChange(records, change, options.outcodes);
+      if (old && !records.has(change.id)) audit.removedExistingRecords++;
     } catch (error) {
       throw new Error(
         `PPD row ${rowNumber}: ${error instanceof Error ? error.message : "Invalid record"}`,
@@ -218,6 +238,7 @@ export async function ingestPpd(
     appliedFiles: reapplied
       ? previous!.appliedFiles
       : [...(previous?.appliedFiles ?? []), digest],
+    importAudit: reapplied ? previous!.importAudit : audit,
     records: [...records.values()].sort((a, b) => a.id.localeCompare(b.id)),
     matches,
     outsideCoverage,

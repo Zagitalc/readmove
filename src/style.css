@@ -1379,3 +1379,73 @@ dialog .provenance {
   outline: 2px solid #306e58;
   outline-offset: 2px;
 }
+
+#official-sales {
+  padding-top: 34px;
+}
+#official-sales h2 {
+  margin-top: 10px;
+}
+.sold-scope {
+  font-size: 12px;
+  line-height: 1.6;
+  border-left: 2px solid #71866d;
+  padding-left: 10px;
+}
+.sold-search-label {
+  display: block;
+  font-size: 12px;
+  margin-top: 18px;
+}
+#sold-query {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: white;
+  font: inherit;
+}
+#sold-count {
+  font-size: 12px;
+}
+.sold-record {
+  border-top: 1px solid var(--line);
+  padding: 15px 0;
+}
+.sold-record time {
+  float: right;
+  font-size: 11px;
+}
+.sold-record p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0;
+}
+.sold-record small,
+.sold-record details {
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.sold-record code {
+  overflow-wrap: anywhere;
+}
+.sold-provenance {
+  margin-top: 24px;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.sold-provenance a {
+  text-decoration: underline;
+}
+@media (max-width: 700px) {
+  .modes {
+    max-width: calc(100vw - 24px);
+  }
+  .modes button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}

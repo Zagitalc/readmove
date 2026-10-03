@@ -61,3 +61,9 @@ Blender is **not** an MVP dependency. Future selective assets should follow:
 6. Dispose distant assets, cancel obsolete downloads and test phone memory/thermal behaviour.
 
 Do not replace arbitrary nearby buildings with a landmark model. The objective is believable spatial context, not house-by-house photorealism.
+
+## Official residential sale display
+
+The separately lazy-loaded `sales-2025.v1.json` contains 6,325 real residential transaction records with shared source metadata. `shared/published-sales.ts` validates count, ID and postcode consistency. `src/property/sold-prices.ts` filters address/type/category; `src/ui/sold-prices.ts` renders a responsive side panel/bottom sheet in batches of 20. Text is escaped, source URLs are constrained by schema, and a failed load can be retried on reopening. No coordinates, property IDs or map pin callbacks exist in this contract, so it cannot accidentally substitute a transaction for the selected building. The official source is kept separate from fictional comparable examples.
+
+`scripts/property/prepare.ts` checks the reviewed source checksum and re-parses the original CSV to verify the candidate snapshot before preparing a residential asset. Each refresh needs explicit scope, source-date evidence and a versioned file. National CSVs are not sent to visitors.

@@ -1,0 +1,105 @@
+{
+  "source": {
+    "version": 1,
+    "release": {
+      "url": "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv",
+      "sourceDate": "2026-09-28",
+      "kind": "annual",
+      "year": 2025
+    },
+    "retrievedAt": "2026-10-03T12:16:11.144Z",
+    "sha256": "83540b18086e5748116c744d9e930ad210cafcbb01a5d7d41fcbd2464ba0b5fd",
+    "bytes": 169648191,
+    "downloadsPage": "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads",
+    "termsPage": "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data",
+    "attribution": "Contains HM Land Registry data \u00a9 Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0.",
+    "baseline": {
+      "url": "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv",
+      "sourceDate": "2026-09-28",
+      "kind": "annual",
+      "year": 2025
+    }
+  },
+  "input": {
+    "rows": 974087,
+    "actions": {
+      "A": 974087,
+      "C": 0,
+      "D": 0
+    },
+    "candidateRows": 6593,
+    "missingPostcodeRows": 2451,
+    "otherPostcodeRows": 965043,
+    "removedExistingRecords": 0
+  },
+  "candidates": 6593,
+  "inBoundsWithDocumentedCoordinates": 0,
+  "outsideBoundsWithDocumentedCoordinates": 0,
+  "unmatched": 6593,
+  "observedSaleDateRange": [
+    "2025-01-02",
+    "2025-12-23"
+  ],
+  "byType": {
+    "terraced": 1656,
+    "detached": 1658,
+    "semi-detached": 1648,
+    "flat": 1363,
+    "other": 268
+  },
+  "byCategory": {
+    "A": 5658,
+    "B": 935
+  },
+  "candidateOutcodes": [
+    "RG1",
+    "RG2",
+    "RG4",
+    "RG5",
+    "RG6",
+    "RG7",
+    "RG8",
+    "RG10",
+    "RG30",
+    "RG31",
+    "RG40",
+    "RG41"
+  ],
+  "mapBounds": [
+    -1.08,
+    51.39,
+    -0.84,
+    51.5
+  ],
+  "limitations": [
+    "Postcode candidates are not exact map coverage. Missing postcodes cannot be selected.",
+    "No coordinates, UPRNs, dwelling-to-building joins or valuations are inferred.",
+    "Monthly files contain registrations, corrections and deletions across sale dates; they are not sales for one month.",
+    "An annual baseline is partial history. Later monthly changes do not make it a complete historical dataset.",
+    "PPD excludes some transfers and records may be registered late or revised. Counts are not the entire market.",
+    "A checksum identifies bytes; it is not a publisher signature. Publisher date is supplied by the operator."
+  ],
+  "sourceDateEvidence": {
+    "basis": "Publisher CSV HTTP Last-Modified",
+    "value": "Mon, 28 Sep 2026 05:12:18 GMT",
+    "checkedOn": "2026-10-03",
+    "yearlyPage": "https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file"
+  },
+  "residentialDisplay": {
+    "included": 6325,
+    "excludedOther": 268,
+    "coordinateMatches": 0
+  },
+  "independentValidation": {
+    "parser": "Python standard-library csv",
+    "checkedRows": 6593,
+    "comparedFields": [
+      "transaction ID",
+      "price",
+      "transfer date",
+      "postcode"
+    ],
+    "mismatches": 0,
+    "duplicateRetainedTransactionIds": 0
+  }
+}

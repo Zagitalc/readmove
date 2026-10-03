@@ -1,3 +1,39 @@
+# Apply stage 4 after stage 3
+
+The incremental `readmove-stage4.patch` includes the real 2025 residential sale subset, its source audit, a searchable Sold prices panel, reproducible preparation and tests. It contains no national CSV, secret or paid dependency.
+
+```sh
+git apply --check /path/to/readmove-stage4.patch
+git apply /path/to/readmove-stage4.patch
+npm test
+npm run build
+npm run dev
+```
+
+Open **Sold prices**. No new dependencies or download step are needed to view the bundled 6,325 records. They are postcode-area candidates, not verified map-building matches. Apply all earlier patches first; resolve any local conflicts rather than forcing the patch.
+
+Suggested commit: `Add official Reading-area sold prices and address search`
+
+No commit, push or deployment was made. Review and push yourself using your existing local checkout/remote. Earlier handoffs below describe their historical state; stage 4 resolves the Price Paid download restriction.
+
+---
+
+# Apply stage 3 after stage 2
+
+`readmove-stage3.patch` adds the official HMLR downloader, source receipt, coverage audit and related tests. It contains no real transaction records. Apply from the local readmove checkout after your stage-2 changes:
+
+```sh
+git apply --check /path/to/readmove-stage3.patch
+git apply /path/to/readmove-stage3.patch
+npm test
+npm run build
+npm run data:sales:official -- --help
+```
+
+Review and resolve local edits if the check fails; do not force-overwrite. Commit suggestion: `Add official Land Registry download and coverage audit`. No commits, pushes or deployments were made. See [sold-prices.md](sold-prices.md) for the official-source command and the unresolved cloud network restriction.
+
+---
+
 # Apply stage 2 after milestone 1
 
 The new deliverable, `readmove-stage2.patch`, is **incremental**: apply it to the milestone-1 files you already added. It does not assume a particular local commit SHA. A ZIP of the same patch is provided because the larger self-hosted geography increases the download size. Extract it first.
