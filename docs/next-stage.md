@@ -1,11 +1,11 @@
-# Next stage: verified sale locations
+# Next stage: wider coverage and matching quality
 
-The 2025 official residential price panel is implemented and audited. Keep it useful independently of map matching; there is no paid data requirement for this release.
+Stage 6 completes the free-source coordinate join: 100 UPRNs located, 65 inside the map, optional points and nearby mapped-sale comparisons. See [the coordinate audit](sale-coordinates.md).
 
-1. Completed: the August 2026 official lookup matches 100 of 6,325 sales with zero conflicts. See [the matching audit](uprn-matching.md). Do not assume this covers all older transactions.
-2. Apply the saved OS network destinations (`www.ordnancesurvey.co.uk`, `api.os.uk`): current requests return proxy HTTP 403. Then obtain a versioned OS Open UPRN coordinate extract, verify licence/attribution and coordinate system, and audit transaction → UPRN → point joins.
-3. Keep points separate from OSM building identity, especially flats and multiple dwellings. Do not assign the nearest footprint silently.
-4. Connect reviewed locations to real comparable sales with type/date/category controls. Exclude unlocated records from distance queries and keep them available through address search.
-5. Add more annual source files or a complete baseline with explicit corrections/versioning. A 2025 file is not full historical coverage.
+1. Broaden official transaction/UPRN coverage by reviewing later and historical lookup availability; preserve source periods and correction semantics. Current joined coverage is only 100 of 6,325 transactions.
+2. Add further sale years or a complete baseline with versioned regional extracts, source dates and explicit market-coverage limitations.
+3. Audit dwelling-to-building associations separately, especially flats; never assign a nearest footprint silently. Current points do not select buildings.
+4. Improve useful comparable filtering (tenure, new-build status, fuller transaction history) without implying valuation or floor area that the sources do not supply.
+5. Add official neighbourhood context only when its source and geographic grain are ready. Census, schools, EPC and flood layers remain later integrations.
 
-See [sold-prices.md](sold-prices.md) for the completed release, evidence, limitations and reproducible commands. Census, schools, EPC and flood layers remain later stages.
+No paid map/coordinate API, account or database was introduced. Source archives are retained locally but not shipped to visitors.

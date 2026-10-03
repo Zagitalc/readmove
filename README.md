@@ -81,6 +81,8 @@ Open **Sold prices** for 6,325 real residential transactions from HM Land Regist
 
 The official download succeeded on 3 October 2026. Source file updated 28 September 2026; 6,593 postcode candidates audited, 268 type Other excluded from the residential display. No paid data service, API key or live visitor API call is needed. [Reproduction, audit and licence details](docs/sold-prices.md).
 
-## Official UPRN matching
+## Official sale points and nearby transactions
 
-Stage 5 adds 100 exact official transaction-to-UPRN matches, with an **Only with an official UPRN** filter and identifier details. The August 2026 monthly lookup covers only about 1.6% of the bundled 2025 sales. Coordinates remain pending because the OS download hosts are blocked in the current runtime. No new pins or real spatial comparisons are claimed. [Audit, reproduction and remaining network step](docs/uprn-matching.md).
+All 100 officially matched UPRNs now have OS coordinates: **65 inside the map and 35 outside**. Open Sold prices → **Show verified sale points**; choose Both categories for all 65 points (the default Standard category has 51). Select a point or View location & nearby sales to compare mapped transactions by radius, date, type and category.
+
+The other 6,225 residential transactions remain searchable without invented locations. Points are optional, source-linked and separate from OSM buildings. This sparse subset is not a valuation or full market coverage. [Source audit, limits and reproduction](docs/sale-coordinates.md).

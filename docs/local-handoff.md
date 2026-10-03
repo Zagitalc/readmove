@@ -1,3 +1,23 @@
+# Apply stage 6 after stage 5
+
+Download `readmove-stage6.patch` and apply it from your local readmove folder:
+
+```sh
+git apply --check ~/Downloads/readmove-stage6.patch
+git apply ~/Downloads/readmove-stage6.patch
+npm test
+npm run build
+npm run dev
+```
+
+Open Sold prices → Show verified sale points. Standard (A) shows 51 points; Both categories shows all 65 inside the map. Enable Only with a location inside this map, then View location & nearby sales. These are official coordinates, not OSM building associations. The bundled data needs no extra download or Python installation to run.
+
+Suggested commit: `Map verified sold-price locations and nearby transactions`
+
+The patch is incremental after stage 5. Resolve local conflicts before applying; do not force-overwrite. Nothing committed, pushed or deployed.
+
+---
+
 # Apply stage 5 after stage 4
 
 `readmove-stage5.patch` adds the official UPRN identifier join, audit, app filter and tests. It applies to either the sequential stage-3/stage-4 result or the combined stage-3-and-4 patch; their final files are identical.

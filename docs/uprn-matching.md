@@ -1,4 +1,6 @@
-# Official transaction identifiers — stage 5
+# Official transaction identifiers
+
+**Stage 6 update:** all 100 identifiers now have verified OS coordinates; 65 are inside the map and 35 outside. Optional map points and nearby-sale filters are implemented. [Coordinate evidence and usage](sale-coordinates.md). The stage-5 audit below records the identifier-only foundation.
 
 The August 2026 HM Land Registry transaction-to-UPRN lookup was downloaded from the link on the [official source page](https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset) on 3 October 2026. It is free, under OGL v3.0 with both Land Registry and OS attribution. Existing Price Paid address conditions still apply.
 

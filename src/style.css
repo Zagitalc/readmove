@@ -1460,3 +1460,38 @@ dialog .provenance {
 .sold-identifier-filter input {
   accent-color: var(--green);
 }
+
+.official-sale-pin {
+  padding: 5px 8px;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: #355c49;
+  color: white;
+  font: 600 11px system-ui;
+  box-shadow: 0 1px 5px #243d3a44;
+}
+.official-sale-pin[aria-pressed="true"] {
+  background: #242f29;
+  outline: 2px solid #d9e6b4;
+  z-index: 2;
+}
+.sold-locate,
+#clear-official-selection {
+  display: block;
+  margin: 8px 0;
+  padding: 5px 0;
+  font-size: 11px;
+  text-decoration: underline;
+  color: var(--green);
+}
+#sold-selected {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin: 14px 0;
+  padding-bottom: 12px;
+  font-size: 12px;
+}
+#sold-selected p {
+  font-size: 12px;
+  line-height: 1.5;
+}

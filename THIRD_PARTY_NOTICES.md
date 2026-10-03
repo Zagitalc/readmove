@@ -31,7 +31,7 @@ The residential transaction subset in `public/data/sales-2025.v1.json` is derive
 Publisher conditions: https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data
 OGL v3.0: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
 
-OGL does not cover all third-party address rights. The publisher says Royal Mail and Ordnance Survey permit personal/non-commercial use and display for residential property price information services. This app uses the latter purpose; type Other is excluded from display. Do not repurpose this subset as a general address directory. Other address uses require the relevant permission. The UPRN lookup subset is described below; no OS coordinate product is redistributed in this release.
+OGL does not cover all third-party address rights. The publisher says Royal Mail and Ordnance Survey permit personal/non-commercial use and display for residential property price information services. This app uses the latter purpose; type Other is excluded from display. Do not repurpose this subset as a general address directory. Other address uses require the relevant permission. The UPRN lookup subset is described below; the regional OS coordinate subset is described below.
 
 ## HM Land Registry transaction-to-UPRN lookup
 
@@ -43,4 +43,12 @@ UPRNs contain OS data © Crown copyright and database rights 2026. This data is 
 
 Source and conditions: https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset
 
-Combined use with Price Paid addresses remains subject to their address conditions. Identifiers do not establish coordinates, property boundaries, occupants or ownership.
+Combined use with Price Paid addresses remains subject to their address conditions. Identifiers alone do not establish coordinates, property boundaries, occupants or ownership.
+
+## OS Open UPRN coordinates
+
+Contains Ordnance Survey data © Crown copyright and database right 2026.
+
+The 100 coordinate points in `public/data/sale-locations.v2.json` and the associated coordinate audit come from the official September 2026 OS Open UPRN archive (extraction date 14 August 2026, retrieved 3 October 2026). The source archive states that use of OS OpenData is subject to `http://os.uk/opendata/licence`. Retain this acknowledgement and the applicable OS OpenData terms, separately from the app's MIT licence. Product information: https://www.ordnancesurvey.co.uk/products/os-open-uprn.
+
+No property boundaries, address directory or OS basemap is reproduced from this product. The input British National Grid values are retained only in the small matched-row audit; the map uses published longitude/latitude. The coordinate archive and national CSV are not bundled.

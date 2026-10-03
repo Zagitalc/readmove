@@ -68,3 +68,7 @@ Downloaded and audited on 3 October 2026: 974,087 national rows; 6,593 retained 
 ## Transaction-to-UPRN lookup (implemented, coordinates pending)
 
 The August 2026 official monthly file provides 100 exact identifier joins to the 6,325 residential sales; 6,225 remain unmatched. Zero conflicting joins. The separately versioned asset is bound to the sale-file checksum and includes both required attributions. The UI can filter identified transactions and show UPRNs. OS coordinate download is blocked by the running cloud network policy; no real map pins or building associations were added. See [uprn-matching.md](uprn-matching.md).
+
+## OS Open UPRN coordinates (implemented, stage 6)
+
+September 2026 release, extraction 14 August 2026: 41,676,575 national CSV rows scanned; all 100 joined UPRNs found, with 65 inside map bounds and 35 outside. Original archive length/MD5/SHA-256 verified. Only the regional coordinates and audit are bundled. The former network blocker is resolved. Optional points and nearby-sale filtering are implemented without building associations or valuation claims. [Details](sale-coordinates.md).

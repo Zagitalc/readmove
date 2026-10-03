@@ -1,3 +1,15 @@
+# Stage 6 — verified coordinates and optional map points
+
+- OS official API/archive download succeeded over verified HTTPS. Archive length 619,271,161 bytes and publisher MD5 `1d5c21d8166d6efd74850ec6f1ae77ab` match; recorded SHA-256 is `107503d45bedaab7f74511766eedbd617f9ca3592113363711e94f4b6458d55a`.
+- September 2026 release reports extraction date 14 August 2026 in versions.txt. The archive notice and native CSV schema were inspected; no datum transformation or building assignment was made.
+- Two separate full CSV scans agree on all 100 requested UPRN coordinates across 41,676,575 rows. Zero missing/conflicting/duplicate matched rows; 65 inside map bounds and 35 outside. Only matched rows are bundled.
+- 38 unit tests pass, including GB coordinate order/range, source evidence, true map bounds, source-preserving located-sale joins and real nearby-distance expectations.
+- Full 22-case desktop/mobile browser suite passes. Optional points, exact category counts (51 standard / 65 both), official selection, nearby filters, clearing markers and fixture separation are covered. Additional targeted verification exercises keyboard marker selection with a fixed test date.
+- Production TypeScript/Vite build passes. Existing bundle-size/vector-tile-version warnings remain. Physical-device performance and survey-grade positional accuracy are not claimed.
+- Incremental stage-6 patch is checked and applied against the saved stage-5 baseline, then compared byte-for-byte. National archives/raw CSVs are excluded. No commits, pushes or deployments.
+
+---
+
 # Stage 5 — exact UPRN identifiers, coordinates pending
 
 - Downloaded and validated all 84,149 rows of the official August 2026 transaction-to-UPRN CSV. Its pinned SHA-256 and provenance accompany the versioned join asset.
