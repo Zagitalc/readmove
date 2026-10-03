@@ -1,42 +1,66 @@
-# Official transaction identifiers
+# Verified transaction locations — local 3 October 2026
 
-**Stage 6 update:** all 100 identifiers now have verified OS coordinates; 65 are inside the map and 35 outside. Optional map points and nearby-sale filters are implemented. [Coordinate evidence and usage](sale-coordinates.md). The stage-5 audit below records the identifier-only foundation.
+The initial local checkout (`02ae156`, clean detached HEAD) contained the August identifier-only release: 100 matches and **zero coordinates**. The expected cloud coordinate/UI patch was not present. This implementation adds a separate `sale-locations.v2.json`; the old v1 remains an immutable historical input. The original price asset is unchanged.
 
-The August 2026 HM Land Registry transaction-to-UPRN lookup was downloaded from the link on the [official source page](https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset) on 3 October 2026. It is free, under OGL v3.0 with both Land Registry and OS attribution. Existing Price Paid address conditions still apply.
+## Measured coverage
 
-- URL: `https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-aug-2026.csv`
-- Bytes: 4,624,174; file Last-Modified: `Mon, 28 Sep 2026 05:12:50 GMT`.
-- SHA-256: `4a21a086c786ad5f9bb66c6d16abb9b84514146abcd52e1f983fec72fc38524f`.
-- National input: 84,149 rows, two columns, no header; transaction UUID and UPRN.
-- Exact matches to the bundled 6,325 residential transactions: **100 (about 1.6%)**.
-- 6,225 transactions have no match in this monthly lookup. Zero conflicting matches; zero duplicate matched rows. The 100 transactions have 100 distinct UPRNs.
-- **Zero verified coordinates and zero building joins.** Absence from a monthly lookup does not mean a property has no UPRN.
+| Measure | August only | July + August |
+| --- | ---: | ---: |
+| Residential price records | 6,325 | 6,325 |
+| Exact transaction identifiers | 100 | 246 |
+| Unmatched identifiers | 6,225 | 6,079 |
+| Ambiguous identifiers | 0 | 0 |
+| Transactions with OS coordinates | 100 | 246 |
+| In the map bounds | 65 | 177 |
+| Outside the map bounds | 35 | 69 |
 
-The 2026 monthly file contains some identifiers for 2025 sales. This measured overlap does not establish complete historical coverage. The transaction UUID is the join key; no address similarity, postcode centroid or nearest-building inference is used.
+August's coordinates above were measured during this local work, not present at checkout. July supplied 147 matches, including one identical overlap and **146 additions**. There were no duplicate candidate rows within either lookup and no conflicting transaction mappings. The 246 transactions refer to 245 distinct UPRNs; the 177 in-bounds transactions refer to 176 distinct UPRNs across 160 coordinate positions. Identifier coverage is 3.89%; in-map coverage is 2.80% of the postcode-area residential subset. Outside-map coordinates remain explicit, with no markers or distance comparisons. All unmatched sales remain searchable.
 
-## App behaviour
+These two monthly files are **not a complete historical lookup archive**. Missing matches do not establish absence of a UPRN. The earlier June HTTP 403 does not establish whether that dataset exists; no conclusion is drawn from it.
 
-Open Sold prices, choose Both categories, then check **Only with an official UPRN**. The result count is 100. Expand a transaction reference to see its official UPRN and “coordinates pending”. Normal sold-address search still covers all 6,325 residential records. No new map pins are displayed in this release.
+## Sources and evidence
 
-The lookup asset is fetched with the sold-price panel and bound to the exact price asset's SHA-256. A stale or mismatched lookup is rejected while price search remains available; reopening retries. A UPRN is not treated as an OSM footprint or evidence of a coordinate. Shared contracts keep coordinate-source evidence separate; it is absent from the current bundle.
+Retrieved **2026-10-03** from official public endpoints without credentials or payment. HMLR lookup terms and attributions: [publisher page](https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset). Existing Price Paid address-display conditions continue to apply.
 
-## Reproduce the identifier join
+| Source | Rows | Bytes | SHA-256 |
+| --- | ---: | ---: | --- |
+| [July 2026](https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-jul-2026.csv) | 94,112 | 5,169,801 | `1d05becac589365a0f87b81f06b9a79c83281a600f49267b7f18a36f91ef3254` |
+| [August 2026](https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-aug-2026.csv) | 84,149 | 4,624,174 | `4a21a086c786ad5f9bb66c6d16abb9b84514146abcd52e1f983fec72fc38524f` |
+| [OS Open UPRN September CSV ZIP](https://api.os.uk/downloads/v1/products/OpenUPRN/downloads?area=GB&format=CSV&redirect) | 41,676,575 CSV rows | 619,271,161 ZIP bytes | `107503d45bedaab7f74511766eedbd617f9ca3592113363711e94f4b6458d55a` |
 
-The original CSV is retained in ignored `raw/uprn-aug-2026/source.csv`. The publisher URL can change; keep the verified raw bytes and receipt.
+Both HMLR responses had Last-Modified `Mon, 28 Sep 2026 05:12:50 GMT`; do not substitute the period for that transport timestamp. OS's response had Last-Modified `Thu, 17 Sep 2026 15:18:09 GMT`. Its metadata reported MD5 `1d5c21d8166d6efd74850ec6f1ae77ab`.
+
+The **September release** is `osopenuprn_202609_csv.zip`. Its embedded `versions.txt` says **Data Extraction Date: 14-08-2026**. That snapshot date is distinct from the release period and download date. The member `osopenuprn_202609.csv` is 2,273,707,279 bytes; SHA-256 `aafe9a43365469f8b57954583344947b8f877266b88b1d92823cd67259cecd98`. Its header is `UPRN,X_COORDINATE,Y_COORDINATE,LATITUDE,LONGITUDE`; points use supplied longitude/latitude, never BNG metres interpreted as degrees. The archive's licence requires “Contains Ordnance Survey data © Crown copyright and database right 2026.” [OS product documentation](https://docs.os.uk/os-downloads/products/addresses-and-names-portfolio/os-open-uprn).
+
+Every identifier stores all supporting lookup hashes; each hash resolves to a URL, release period, retrieval day and checksum. Identical pairs deduplicate across releases. Conflicting pairs retain all candidate UPRNs and evidence in `ambiguous` and receive no coordinate link. Conflicts within a release cannot disappear when releases merge. Coordinate evidence has its own archive/member checksums and dates. Runtime schemas reject missing evidence, invalid/duplicate coordinates, unknown UPRNs, ambiguous coordinate use and inconsistent coverage.
+
+Transactions, identifier mappings and coordinates remain separate. No postcode centroid, fuzzy address or arbitrary building assignment is used. An OS point is an official observation, not a verified footprint or property boundary.
+
+## Reproduce locally
+
+Python 3.11+ and Node 24+ are sufficient; no extra Python packages. Inspect [OS metadata](https://api.os.uk/downloads/v1/products/OpenUPRN/downloads) before downloading: the endpoint redirects to the current release, which may change. Retain original bytes in ignored `raw/`. Never commit the national ZIP/CSV or signed redirect URLs.
 
 ```sh
-npm run data:sales:uprn -- \
-  raw/uprn-aug-2026/source.csv \
-  public/data/sales-2025.v1.json \
-  raw/rebuilt-sale-identifiers.json
+mkdir -p raw/uprn-jul-2026 raw/uprn-aug-2026 raw/os-sep-2026
+curl -fL 'https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-jul-2026.csv' -o raw/uprn-jul-2026/source.csv
+curl -fL 'https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-aug-2026.csv' -o raw/uprn-aug-2026/source.csv
+curl -fL 'https://api.os.uk/downloads/v1/products/OpenUPRN/downloads?area=GB&format=CSV&redirect' -o raw/os-sep-2026/source.zip
+node --import tsx scripts/property/prepare-verified.ts public/data/sales-2025.v1.json raw/uprn-jul-2026/source.csv raw/uprn-aug-2026/source.csv - raw/combined-identifiers.json
+python3 scripts/property/os_coordinates.py raw/os-sep-2026/source.zip raw/combined-identifiers.json raw/os-sep-2026/join.json
+node --import tsx scripts/property/prepare-verified.ts public/data/sales-2025.v1.json raw/uprn-jul-2026/source.csv raw/uprn-aug-2026/source.csv raw/os-sep-2026/join.json raw/rebuilt-sale-locations.v2.json
+cmp raw/rebuilt-sale-locations.v2.json public/data/sale-locations.v2.json
 ```
 
-Output must not exist. The parser validates every row, keeps only relevant transaction IDs, deduplicates identical rows, excludes conflicting UPRNs and reports ambiguous/unmatched counts. The preparation script pins the reviewed source hash and writes a separate versioned asset; it neither deploys nor edits the original price dataset. The bundle records retrieval at day precision; no exact retrieval time is asserted.
+Use fresh output paths; preparation refuses existing outputs. Downloads above are for a fresh raw directory—retain existing source files before refreshing. Source hashes are pinned to the reviewed releases; changed bytes require a new audit and deliberate pin/provenance update. OS extraction streams the ZIP member, hashes and validates every row, and keeps only requested UPRNs in memory. It reads to EOF to detect later conflicts; it does not extract the 2.27 GB CSV. Equal coordinates deduplicate; conflicting points are excluded as ambiguous. Invalid values abort before output. This is a reviewed release preparation tool, not an automated monthly refresh service.
 
-## Remaining coordinate blocker
+## App flow
 
-The official OS product page at `https://www.ordnancesurvey.co.uk/products/os-open-uprn` and download metadata at `https://api.os.uk/downloads/v1/products/OpenUPRN/downloads` return proxy HTTP 403 in this running cloud environment. The two exact hostnames were added to the saved network draft, preserving existing hosts and package-manager presets. Saving the draft has not enabled runtime access.
+Sold prices → search **RG1 4PF** → Show mapped sale. Selection clears the query in state and input; three nearby flats (or five sales with all types) match category A within 1 km. Explicit type/category/radius/date filters persist through selection and Back. Same-UPRN sales are excluded from comparisons. Date and distance are inclusive, and future transactions are excluded.
 
-Apply the saved network update in environment settings, then retry the official product and download metadata. Verify the actual current release, download URL, format, CRS and terms before writing its importer. OS Open UPRN is the intended free coordinate source; no coordinate archive has been fetched or its live schema validated yet. No payment, key or alternative provider is being requested at this point.
+**Fit nearby sales** includes the selected property plus every filtered comparable, including results beyond the first page. Fit measures the current desktop panel or mobile sheet, top navigation, right controls and footer/dock. It uses an overhead view and caps single-point zoom. With no comparables it fits the selection. Filters do not move the camera. While fitting, the camera can show space outside the data boundary because the normal whole-canvas max bounds would otherwise prevent fitting above a mobile sheet; closing the panel restores normal camera limits. Data/marker bounds remain unchanged.
 
-Once accessible: join official UPRN coordinates, validate latitude/longitude and duplicate/conflicting points, separate out-of-map records, audit representative flats/houses, then add optional sale markers and distance-based comparisons. Keep building identity separate, retain coordinate-source dates/attribution, and leave the 6,225 unmatched transactions searchable.
+The panel header/close button never scrolls. Results, filters and provenance scroll internally. Map buttons and list buttons support keyboard selection; Back focuses search, Close/Escape restore Sold prices navigation. Loading can be closed; a delayed result cannot reopen the panel or repopulate markers. Failure preserves price search and retries on reopen.
+
+## Integration with stage-6
+
+Reconciled the existing stage-6 coordinate implementation with the expanded lookup and browser-flow work. The original 100-coordinate audit and extractor, coordinate validation and map attribution are retained. The app uses one current renderer/schema path, with optional map points (off by default), an in-map-only filter, grouped co-located sales, exact date filtering, query clearing and explicit fit. The original relative transaction-age selector is superseded by the explicit “Sold on or after” date filter. Earlier verification above describes the pre-merge work; merge-specific checks are recorded in the handoff.

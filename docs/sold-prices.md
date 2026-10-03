@@ -1,6 +1,12 @@
+# Current local status — 3 October 2026
+
+The reviewed price asset remains unchanged: 6,325 residential transactions. July/August lookup merging and September OS coordinate extraction now provide 246 matched transactions, 177 inside the map. The sold-price UI supports verified points, selection, nearby filters and explicit fit. See [current source audit and reproduction](uprn-matching.md). Statements about pending coordinates below describe earlier stages, not current availability.
+
+---
+
 # Official sold prices — implemented
 
-The app now bundles **6,325 residential transaction records** from the official 2025 annual Price Paid Data file, in 12 Reading-area postcode districts. Open **Sold prices** to search addresses/postcodes, filter residential type and standard/additional category, and read dates, tenure, source and attribution. Optional verified sale points and nearby-sale filters are now available for 65 in-map transactions; the existing map example prices remain separately labelled fictional.
+The app now bundles **6,325 residential transaction records** from the official 2025 annual Price Paid Data file, in 12 Reading-area postcode districts. Open **Sold prices** to search addresses/postcodes, filter residential type and standard/additional category, and read dates, tenure, source and attribution. The existing map example prices remain separately labelled fictional.
 
 Downloaded on **3 October 2026** directly from `https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv`, linked by the [official yearly page](https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file). Source date **28 September 2026** is the publisher file's HTTP Last-Modified date (`Mon, 28 Sep 2026 05:12:18 GMT`), not the yearly web page's later edit date or a transaction date. The original file has 169,648,191 bytes and SHA-256 `83540b18086e5748116c744d9e930ad210cafcbb01a5d7d41fcbd2464ba0b5fd`.
 
@@ -65,7 +71,7 @@ A monthly file is registrations, corrections and deletions across sale dates, **
 
 The previous HTTP 403 restriction is resolved for GOV.UK and the Price Paid host. Their terms and schema pages were read successfully. The direct National Archives OGL page still returned HTTP 403 in this environment; the publisher's pages explicitly provide the OGL v3.0 permission, acknowledgement and additional address-data conditions. The intended display is residential property price information, one of the publisher's expressly permitted address uses. Do not repurpose the address data as a general-purpose directory.
 
-The [official transaction-to-UPRN lookup page](https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset) also describes a free monthly lookup under OGL v3.0, with additional OS attribution. Its currently linked file is August 2026. Stage 5 joins this release by exact transaction UUID: 100 of the 6,325 residential transactions match. See [the UPRN audit](uprn-matching.md). Stage 6 adds verified OS coordinates for all 100 matches, including 65 inside the map; see [sale-coordinates.md](sale-coordinates.md). A monthly lookup must not be assumed to cover historical sales. Coordinate enrichment through OS Open UPRN and reviewed building identity is the next stage; preserve unmatched records and dwelling/building distinctions.
+The [official transaction-to-UPRN lookup page](https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset) also describes a free monthly lookup under OGL v3.0, with additional OS attribution. Its currently linked file is August 2026. Stage 5 joins this release by exact transaction UUID: 100 of the 6,325 residential transactions match. See [the UPRN audit](uprn-matching.md). Those original matches carried no coordinates; the expanded v2 join now includes separate OS evidence. A monthly lookup must not be assumed to cover historical sales. OS coordinate enrichment is now implemented; reviewed building identity remains a later stage; preserve unmatched records and dwelling/building distinctions.
 
 ---
 
@@ -132,7 +138,7 @@ There is deliberately no nearest-building or postcode-centroid assignment. Conne
 
 `src/property/comparables.ts` accepts located transactions and filters by straight-line distance, type, calendar-month age and optional inclusive price range. It excludes the selected property, future sales, invalid coordinates and fixture/real-data mixing; ordering is deterministic by distance, date and ID. No sale-price adjustment, floor-area estimation or valuation model is present.
 
-The current UI exposes distance, type and age filters on the fictional example only, using its visible fixed as-of date. Official import output stays in `raw/`; only the explicitly reviewed residential asset is bundled for address search. This avoids accidentally presenting test/import files as verified map observations.
+The fictional example exposes distance/type/age with a fixed as-of date. The official sold-price UI separately exposes radius/type/category/date using only matched OS points. Official import output stays in `raw/`; only the explicitly reviewed residential asset is bundled for address search. This avoids accidentally presenting test/import files as verified map observations.
 
 ## Next data milestone
 

@@ -1,69 +1,69 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { publishedSalesSchema } from "../../shared/published-sales";
-import { saleLocationsSchema } from "../../shared/sale-locations";
+import { verifiedLocationsSchema } from "../../shared/verified-locations";
 import { inBounds } from "../../shared/geo";
 import { REGION } from "../../shared/config";
-import { locateSales } from "../../src/property/located-sales";
-import { findComparableSales } from "../../src/property/comparables";
+import { locateSales, nearbySales } from "../../src/property/located-sales";
 const read = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 const data = publishedSalesSchema.parse(read("public/data/sales-2025.v1.json"));
-const locations = saleLocationsSchema.parse(
+const locations = verifiedLocationsSchema.parse(
   read("public/data/sale-locations.v2.json"),
 );
-it("retains all 100 official coordinates and renders only the 65 in map bounds", () => {
-  expect(locations.counts.coordinateMatches).toBe(100);
-  expect(locations.counts.outsideMapBounds).toBe(35);
-  expect(locations.coordinateSource?.snapshotDate).toBe("2026-08-14");
-  const rows = locateSales(data, locations);
-  expect(rows).toHaveLength(65);
-  expect(rows.every((s) => inBounds(s.position, REGION.bounds))).toBe(true);
-  expect(rows[0].position).toEqual([-0.9536733, 51.4526991]);
-  expect(rows[0].price).toBe(195000);
+it("preserves every stage-6 August coordinate in the expanded official join", () => {
+  const original = read("public/data/sale-coordinates.audit.json");
+  const points = new Map(
+    locations.coordinates.map((c) => [c.uprn, c.position]),
+  );
+  expect(original.matchedRows).toHaveLength(100);
+  for (const row of original.matchedRows)
+    expect(points.get(row.uprn)).toEqual(row.position);
+  expect(
+    original.matchedRows.filter((p: { position: unknown }) =>
+      inBounds(p.position, REGION.bounds),
+    ),
+  ).toHaveLength(65);
+  expect(locations.coordinateSource.snapshotDate).toBe(original.extractionDate);
+  const rows = [...locateSales(data, locations).values()];
+  expect(rows).toHaveLength(177);
   expect(rows.every((s) => !("buildingId" in s))).toBe(true);
-  expect(
-    locateSales(data, { ...locations, coordinateSource: undefined }),
-  ).toEqual([]);
+  expect(locateSales(data).size).toBe(0);
 });
-it("compares real source-linked sales by distance and excludes the selected UPRN", () => {
+it("keeps the original nearby comparisons and adds the newly located July sale", () => {
   const rows = locateSales(data, locations);
-  const subject = rows[0];
-  const matches = findComparableSales(
-    subject,
-    rows.filter((s) => s.category === "A"),
-    { radiusMetres: 1000, maxAgeMonths: 24, asOf: "2026-10-03" },
-  );
-  expect(matches).toHaveLength(4);
-  expect(matches.map((s) => Math.round(s.distanceMetres))).toEqual([
-    523, 526, 867, 971,
+  const subject = [...rows.values()].find(
+    (s) => s.sale.address.postcode === "RG1 4PF",
+  )!;
+  const filters = {
+    query: "",
+    type: "",
+    category: "A",
+    identifierOnly: false,
+    radius: 1000,
+    since: "2024-10-03",
+  };
+  const matches = nearbySales(data, rows, subject, filters, "2026-10-03");
+  expect(matches.map((s) => Math.round(s.distance))).toEqual([
+    523, 526, 798, 867, 971,
   ]);
-  expect(matches.every((s) => s.propertyRef !== subject.propertyRef)).toBe(
-    true,
-  );
+  expect(matches.every((s) => s.uprn !== subject.uprn)).toBe(true);
   expect(
-    findComparableSales(subject, rows, {
-      radiusMetres: 250,
-      maxAgeMonths: 24,
-      asOf: "2026-10-03",
-    }),
+    nearbySales(data, rows, subject, { ...filters, radius: 250 }, "2026-10-03"),
   ).toEqual([]);
 });
-it("rejects missing evidence, reversed coordinates and false coverage counts", () => {
+it("rejects missing coordinate evidence and reversed coordinates", () => {
   expect(() =>
-    saleLocationsSchema.parse({ ...locations, coordinateSource: undefined }),
-  ).toThrow();
-  expect(() =>
-    saleLocationsSchema.parse({
+    verifiedLocationsSchema.parse({
       ...locations,
-      counts: { ...locations.counts, outsideMapBounds: 0 },
+      coordinateSource: undefined,
     }),
   ).toThrow();
   expect(() =>
-    saleLocationsSchema.parse({
+    verifiedLocationsSchema.parse({
       ...locations,
-      coordinates: locations.coordinates.map((p) => ({
-        ...p,
-        position: [p.position[1], p.position[0]],
+      coordinates: locations.coordinates.map((c) => ({
+        ...c,
+        position: [c.position[1], c.position[0]],
       })),
     }),
   ).toThrow();

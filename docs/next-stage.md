@@ -1,11 +1,21 @@
-# Next stage: wider coverage and matching quality
+# Roadmap after verified sales
 
-Stage 6 completes the free-source coordinate join: 100 UPRNs located, 65 inside the map, optional points and nearby mapped-sale comparisons. See [the coordinate audit](sale-coordinates.md).
+The local priorities are implemented: conservative July/August identifier merging, official OS coordinates, nearby-sale filters and explicit fit with desktop/mobile browser checks. Preserve the map-dominant design and finish each reliable foundation before starting another.
 
-1. Broaden official transaction/UPRN coverage by reviewing later and historical lookup availability; preserve source periods and correction semantics. Current joined coverage is only 100 of 6,325 transactions.
-2. Add further sale years or a complete baseline with versioned regional extracts, source dates and explicit market-coverage limitations.
-3. Audit dwelling-to-building associations separately, especially flats; never assign a nearest footprint silently. Current points do not select buildings.
-4. Improve useful comparable filtering (tenure, new-build status, fuller transaction history) without implying valuation or floor area that the sources do not supply.
-5. Add official neighbourhood context only when its source and geographic grain are ready. Census, schools, EPC and flood layers remain later integrations.
+A. **Monthly refreshes:** reproducible acquisition, release validation, coverage/difference reports and safe replacement of generated assets. Handle corrections/deletions and source retention explicitly.
 
-No paid map/coordinate API, account or database was introduced. Source archives are retained locally but not shipped to visitors.
+B. **Comparable exploration:** refine distance/date/type/category controls, add transaction history and explain gaps. No formal valuations, unsupported adjustments or price/m² without reliable floor areas.
+
+C. **Exact property matches:** legitimate free identifier sources, retaining unresolved and ambiguous cases. Keep UPRNs distinct from building footprints, especially flats.
+
+D. **ONS context:** official neighbourhood polygons and aggregate statistics with geography editions, dates and denominators; explicitly area-level.
+
+E. **Schools:** DfE locations and dated inspection information. Proximity does not imply admission eligibility.
+
+F. **Environment:** official Environment Agency area context without unsupported property-specific risk scores.
+
+G. **Architecture:** improved procedural residential roofs/materials. Selective licensed GLBs later, with distance-based loading and measured budgets.
+
+H. **Measured usability:** performance, accessibility and mobile improvements based on observed browser/device behaviour. Physical phones, Safari and Firefox remain to be checked.
+
+No property-portal scraping, paid services, tracking, resident profiles or crime maps. See [source audit](uprn-matching.md) and [verification](verification.md).

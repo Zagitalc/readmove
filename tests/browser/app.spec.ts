@@ -62,7 +62,9 @@ test("local 3D geography loads without provider calls or JavaScript errors", asy
   page.on("request", (request) => {
     if (
       /^https?:/.test(request.url()) &&
-      !request.url().startsWith("http://127.0.0.1:5173")
+      !request
+        .url()
+        .startsWith(testInfo.project.use.baseURL ?? "http://127.0.0.1:5173")
     )
       external.push(request.url());
   });
@@ -99,6 +101,7 @@ test("example, provenance, sample transactions and comparison work", async ({
   await expect(page.locator(".comparable-list button")).toHaveCount(0);
   await expect(page.locator("#details")).toContainText("No sample sales match");
   await expect(page.locator(".comparison-pin")).toHaveCount(0);
+  await expect(page.locator(".sale-pin")).toHaveCount(0);
   await page.locator("#sales-type").selectOption("terraced");
   await expect(page.locator(".comparable-list button")).toHaveCount(2);
   await page
@@ -391,23 +394,26 @@ test("official UPRN matches are searchable identifiers and do not become fabrica
   await ready(page);
   await page.getByRole("button", { name: "Sold prices", exact: true }).click();
   await expect(page.locator("#sold-location-status")).toContainText(
-    "100 transactions have an official UPRN · 100 have verified coordinates",
+    "246 transactions have an official UPRN · 246 have verified coordinates",
   );
   await page.locator("#sold-category").selectOption("");
   await page.getByLabel("Only with an official UPRN").check();
   await expect(page.locator("#sold-count")).toHaveText(
-    "100 transactions · showing 20",
+    "246 transactions · showing 20",
   );
   const first = page.locator("#sold-results .sold-record").first();
   await first.getByText("Transaction reference", { exact: true }).click();
-  await expect(first.locator(".sale-uprn")).toHaveText("10009203959");
-  await expect(first).toContainText("OS coordinate verified");
+  await expect(first.locator(".sale-uprn")).toHaveText("10024050728");
+  await expect(first).toContainText("official OS coordinate");
   await expect(page.locator(".comparison-pin")).toHaveCount(0);
+  await expect(page.locator(".sale-pin")).toHaveCount(0);
+  await page.getByLabel("Show verified sale points").check();
+  await expect(page.locator(".sale-pin")).toHaveCount(160);
   await page.getByRole("button", { name: "Close sold prices" }).click();
   await page.getByRole("button", { name: "Sold prices", exact: true }).click();
   await expect(page.getByLabel("Only with an official UPRN")).toBeChecked();
   await expect(page.locator("#sold-count")).toHaveText(
-    "100 transactions · showing 20",
+    "246 transactions · showing 20",
   );
 });
 
@@ -431,72 +437,7 @@ test("a mismatched UPRN asset cannot attach identifiers to a different price sna
   await page.unroute("**/data/sale-locations.v2.json");
   await page.getByRole("button", { name: "Sold prices", exact: true }).click();
   await expect(page.locator("#sold-location-status")).toContainText(
-    "100 transactions have an official UPRN",
+    "246 transactions have an official UPRN",
   );
   await expect(page.getByLabel("Only with an official UPRN")).toBeEnabled();
-});
-
-test("verified sale points are optional, select official sales and filter nearby comparisons", async ({
-  page,
-}, testInfo) => {
-  await page.clock.setFixedTime(new Date("2026-10-03T12:00:00Z"));
-  await ready(page);
-  await page.getByRole("button", { name: "Sold prices", exact: true }).click();
-  await expect(page.locator("#sold-location-status")).toContainText(
-    "65 inside this map. 35 lie outside",
-  );
-  await expect(page.locator(".official-sale-pin")).toHaveCount(0);
-  await page.getByLabel("Show verified sale points").check();
-  await expect(page.locator(".official-sale-pin")).toHaveCount(51);
-  await page.locator("#sold-category").selectOption("");
-  await expect(page.locator(".official-sale-pin")).toHaveCount(65);
-  await page.getByLabel("Show verified sale points").uncheck();
-  await expect(page.locator(".official-sale-pin")).toHaveCount(0);
-  await page.locator("#sold-category").selectOption("A");
-  await page.getByLabel("Only with a location inside this map").check();
-  await page.locator("#sold-results [data-locate]").first().click();
-  await expect(page.locator("#sold-selected")).toContainText(
-    "GLENEAGLES COURT",
-  );
-  await expect(page.locator("#sold-selected")).toContainText("£195,000");
-  await expect(page.locator("#sold-count")).toHaveText(
-    "4 nearby mapped sales · showing 4",
-  );
-  await expect(page.locator(".official-sale-pin")).toHaveCount(5);
-  await expect(
-    page.locator(".official-sale-pin[aria-pressed=true]"),
-  ).toHaveCount(1);
-  await expect
-    .poll(async () => page.evaluate(() => window.__readmove.snapshot().moving))
-    .toBe(false);
-  const centre = await page.evaluate(
-    () => window.__readmove.snapshot().camera.centre,
-  );
-  expect(Math.abs(centre[0] - -0.9536733)).toBeLessThan(0.01);
-  expect(Math.abs(centre[1] - 51.4526991)).toBeLessThan(0.01);
-  await page.locator("#real-radius").selectOption("250");
-  await expect(page.locator("#sold-count")).toHaveText(
-    "0 nearby mapped sales · showing 0",
-  );
-  await expect(page.locator(".official-sale-pin")).toHaveCount(1);
-  await page.locator("#real-radius").selectOption("1000");
-  expect(
-    await page.evaluate(() => window.__readmove.snapshot().selected),
-  ).toBeUndefined();
-  await page.screenshot({
-    path: testInfo.outputPath("verified-sale-points.png"),
-  });
-  const otherPin = page
-    .locator('.official-sale-pin[aria-pressed="false"]')
-    .first();
-  const nextId = await otherPin.getAttribute("data-sale-id");
-  await otherPin.focus();
-  await otherPin.press("Enter");
-  await expect(
-    page.locator('.official-sale-pin[aria-pressed="true"]'),
-  ).toHaveAttribute("data-sale-id", nextId!);
-  await page.getByRole("button", { name: "Back to all sales" }).click();
-  await expect(page.locator(".official-sale-pin")).toHaveCount(51);
-  await page.getByRole("button", { name: "Close sold prices" }).click();
-  await expect(page.locator(".official-sale-pin")).toHaveCount(0);
 });

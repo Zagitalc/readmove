@@ -1,3 +1,7 @@
+# Historical stage-6 coordinate audit
+
+This document records the original August-only coordinate work. The active asset now combines July and August (246 transactions, 177 in bounds). See [current ingestion and UI behaviour](uprn-matching.md). The original script and 100-row audit are preserved; its coordinates are tested against the expanded asset. Historical UI controls/counts below describe the earlier version.
+
 # Verified sale points — stage 6
 
 The app now has official OS Open UPRN coordinates for all **100** matched transactions. **65** points fall inside the configured map bounds and **35** outside. The remaining **6,225** residential transactions have no UPRN join in the imported monthly lookup and remain searchable by address.

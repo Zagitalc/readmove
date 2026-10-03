@@ -1,72 +1,57 @@
-# Stage 6 — verified coordinates and optional map points
+# Local verification — 3 October 2026
 
-- OS official API/archive download succeeded over verified HTTPS. Archive length 619,271,161 bytes and publisher MD5 `1d5c21d8166d6efd74850ec6f1ae77ab` match; recorded SHA-256 is `107503d45bedaab7f74511766eedbd617f9ca3592113363711e94f4b6458d55a`.
-- September 2026 release reports extraction date 14 August 2026 in versions.txt. The archive notice and native CSV schema were inspected; no datum transformation or building assignment was made.
-- Two separate full CSV scans agree on all 100 requested UPRN coordinates across 41,676,575 rows. Zero missing/conflicting/duplicate matched rows; 65 inside map bounds and 35 outside. Only matched rows are bundled.
-- 38 unit tests pass, including GB coordinate order/range, source evidence, true map bounds, source-preserving located-sale joins and real nearby-distance expectations.
-- Full 22-case desktop/mobile browser suite passes. Optional points, exact category counts (51 standard / 65 both), official selection, nearby filters, clearing markers and fixture separation are covered. Additional targeted verification exercises keyboard marker selection with a fixed test date.
-- Production TypeScript/Vite build passes. Existing bundle-size/vector-tile-version warnings remain. Physical-device performance and survey-grade positional accuracy are not claimed.
-- Incremental stage-6 patch is checked and applied against the saved stage-5 baseline, then compared byte-for-byte. National archives/raw CSVs are excluded. No commits, pushes or deployments.
+## Current stage-6 merge verification
 
----
+Resolved the local merge of `codex/verified-sales` (`59c0b7b`) into `stage-6` (`9452c3e`) in the primary checkout. The sections below record the earlier feature-worktree verification; their raw-file paths belong to that worktree.
 
-# Stage 5 — exact UPRN identifiers, coordinates pending
+The merged checkout passes **43 TypeScript unit tests, 2 Python tests and the production build**. Of 30 desktop/mobile Playwright cases, 26 passed in the full run; four initially failed because tests incorrectly treated distinct UPRNs as distinct coordinate positions. Independent asset inspection established 177 sales, 176 UPRNs and 160 exact coordinate positions. The corrected four cases then passed in a targeted rerun, including a check that grouped markers represent all 177 sales. No application change was needed after the full run. Fresh Chrome sessions tested this checkout on port 5174, separate from the existing feature-worktree server.
 
-- Downloaded and validated all 84,149 rows of the official August 2026 transaction-to-UPRN CSV. Its pinned SHA-256 and provenance accompany the versioned join asset.
-- 100 exact matches to the 6,325 residential sales; 6,225 unmatched, zero conflicting or duplicate matched rows. An independent Python CSV check confirmed all 100 published pairs. Regeneration is byte-identical.
-- 35 unit tests pass; production TypeScript/Vite build passes with the existing size warning. Tests include ambiguous IDs, malformed UPRNs, source failures and rejection of coordinates without evidence.
-- Eight relevant desktop/mobile browser checks pass: sold-price search, load recovery, UPRN filtering/details, and rejection/recovery of a lookup with the wrong sales-file hash. Unchanged map regression flows were last fully run at stage 4.
-- `www.ordnancesurvey.co.uk` and `api.os.uk` requests return proxy HTTP 403. Saved network additions have not enabled runtime access. No OS coordinate file, real sale map pins or real distance-based comparisons are claimed.
-- Incremental handoff applies after stage 4 (including the equivalent combined 3-and-4 patch); packaging checks clean application and byte equality. No commits, pushes or deployments.
+The resolution retains stage-6's optional map points, in-map discovery filter, grouped markers, map attribution, page-exit cleanup, legacy coordinate validation and original coordinate audit. Regression tests confirm that every original coordinate is unchanged. The explicit since-date filter replaces the previous relative-age selector. Expanded identifiers, provenance, query clearing, explicit fit and fixed mobile close controls are integrated.
 
----
+A further desktop/mobile flow rerun passed and captured fit/filter screenshots in ignored `raw/merge-browser-captures/`. Both fit screenshots were visually inspected: comparison markers fit the unobscured map, and the mobile close control remains in the fixed sheet header.
 
-# Stage 4 — real official-source data
+The merge is left staged and uncommitted. Existing build-size and vector-tile-version warnings remain.
 
-- Downloaded the official 2025 annual Price Paid CSV over verified HTTPS on 3 October 2026: 169,648,191 bytes; source file Last-Modified 28 September 2026. Source SHA-256 and publisher links accompany the bundled audit.
-- Streamed 974,087 rows; retained 6,593 postcode candidates, all unlocated. Type Other exclusion leaves 6,325 residential display records. Independent Python CSV comparison verified every retained ID/price/date/postcode, with zero mismatches or duplicate retained IDs.
-- Reviewed GOV.UK download, yearly, field-definition and transaction-to-UPRN pages. Address-display conditions and OGL attribution are retained. The National Archives OGL page itself returned HTTP 403; publisher licence conditions were readable.
-- Rebuilt the residential asset from the pinned raw CSV, revalidated snapshot records/audit and obtained byte-identical output. National CSV remains ignored.
-- 32 unit tests pass. TypeScript and Vite build pass; the existing bundle-size warning remains.
-- 16 desktop/mobile browser tests pass, covering map regression, real address/type/category search, no camera movement, viewport bounds, source attribution and failed-load recovery.
-- The handoff patch is checked against the preserved stage-3 baseline, applied to a temporary copy and compared byte-for-byte with the deliverable. Nothing committed, pushed or deployed.
+## Actual baseline
 
-Earlier checks below are historical evidence, not the current source availability status.
+Inspected the repository and Git state first: clean detached HEAD at `02ae156`. No repository `AGENTS.md` was found. Locally, stage 5 had 6,325 transactions and 100 August identifiers, **zero coordinates**, and no mapped-sale selection/comparisons. The later cloud state was absent.
 
----
+The unchanged baseline independently passed **35 Vitest tests**, the TypeScript/Vite build and **20 Playwright cases**. In fresh desktop/mobile browser sessions, RG1 4PF returned one transaction and zero mapped-selection buttons, so the reported cloud query-retention bug could not be reproduced in this earlier local version. Baseline screenshots remain at `raw/baseline-desktop.png` and `raw/baseline-mobile.png`.
 
-# Verification
+## Final checks
 
-Validated in the cloud workspace using Node 24.19.0, npm 11.9.0 and system Chromium with Playwright's software WebGL configuration.
+Environment: macOS, Node 24.19.0, npm 11.17.0, Python 3.13.0. Lockfile dependencies installed with `npm ci --include=dev`. Playwright's expected bundled browser revision was absent; all successful browser runs used fresh installed Google Chrome sessions via `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, software WebGL, desktop 1440 × 1000 and Pixel 7 emulation. The user's existing tab was not used.
 
-- Frozen dependency reinstall: `npm ci --include=dev --cache /tmp/readmove-npm`.
-- 25 Vitest checks: all bundled footprints, bounds/invalid coordinates, polygon holes and edges, area matching, separate property/transaction identity, invalid transaction fields, duplicates, comparable radius, height/source labelling, safe source rendering procedural roof geometry, chunk budgets/transforms, PPD corrections/deletions/idempotence/read failures, explicit matches and source-aware comparable filters.
-- 12 Playwright cases: six flows each in desktop Chromium (1440 × 1000) and mobile Chromium (Pixel 7 viewport). They cover real WebGL rendering without external requests, search with keyboard selection, actual 2D footprint and 3D roof clicks, layer overrides, fictional transaction labels, comparable selection, comparison removal, mobile panel geometry, source dialog contents, outlying address lookup, complete overview tile loading, eviction, budgets and failed-download recovery.
-- TypeScript checking and Vite production build.
-- `wrangler deploy --dry-run`: static asset deployment configuration validates without publishing.
-- Local Cloudflare runtime: HTTP 200, content security policy present, real map and sample-sale interaction succeed, no browser console/page errors, development test hook absent.
-- Pinned geography import with source checksum validation: 97,355 footprint records, 1,237 chunks, 551 tiles and 49,490 search entries. Source checksums are preserved.
-- Patch checked and applied to a clean copy of the milestone-1 baseline; created files compared byte-for-byte with the working source. No agent commit or push.
+- **40 TypeScript unit tests pass** (`npm test`). New checks cover cross-release identical-pair deduplication, order independence, conflicts within/across releases, preservation of every evidence hash, exact IDs, invalid provenance/coordinates, asset binding/counts, query reset and intentional comparison filters.
+- **2 Python coordinate tests pass** (`python3 -m unittest discover -s tests/unit -p 'test_*.py'`). They cover duplicate/conflicting points, longitude/latitude order, invalid UPRNs, nonfinite/out-of-range values, malformed rows and validation even of unrequested records.
+- **TypeScript and production Vite build pass.** The existing large-chunk warning remains: entry JavaScript about 1,633 kB minified / 429 kB gzip.
+- **28 Playwright cases pass**, final complete run in 2.9 minutes. Includes previous map/3D/picking/streaming/error flows, official search and source/hash-load recovery, and eight new desktop/mobile cases.
+- **`git diff --check` passes.** Original transaction asset, v1 identifier asset, map bounds and lockfile are unchanged. National sources and test outputs remain ignored. No commit, push, deployment or reference-app modification.
 
-Screenshots were inspected for desktop/mobile overview and selected-building layouts. Browser results and traces are generated under ignored `test-results/`, not included in the source patch.
+## Browser findings and repairs
 
-## Scope and remaining limits
+The implemented flow now clears both address-query state and input before comparison calculation; nearby results also exclude discovery text by design. RG1 4PF yields five category-A comparisons within 1 km, or three with the flat filter. Type/category/radius/date persist through list/marker selection and Back. Selected sale provenance correctly identifies its in-bounds coordinate and leaves building identity unverified.
 
-Tests use Chromium and software WebGL. Safari, Firefox, physical phones, production Cloudflare account limits, GPU memory/thermal performance and live public deployment have not been verified. WebGL2 is required; there is a startup error/retry state, not a complete non-WebGL renderer.
+The mobile close button stays in fixed panel chrome while content scrolls. Keyboard tests exercise Enter for both list and marker selection, Back-to-search focus, Close/Escape focus restoration, loading closure and delayed completion, empty filters, and absence of horizontal overflow. Runtime price errors retain the map; failed/mismatched location data leaves address search working and retries on reopen.
 
-The approximately 1.6 MB uncompressed application bundle (about 424 kB gzip), plus MapLibre's worker, a 187 kB geometry worker and the local geography, triggers Vite's default chunk-size warning. MapLibre and Three.js dominate the entry. This is recorded as an optimisation opportunity, not suppressed. The roughly 101 MB geographic asset set is now streamed rather than fetched at startup. A representative station view retained about 31 MB of accounted geometry across 32 chunks. This excludes browser, GPU-driver, source-cache and temporary worker memory and is not a physical-device benchmark.
+Measured fit initially exposed a real MapLibre constraint: whole-canvas max bounds prevented fitting into the smaller unobscured rectangle. Fit now temporarily relaxes camera limits, restoring them on exit without changing data coverage. Short phones have a smaller sheet to retain useful map space. Tests check **every marker centre** against the panel/navigation/control margins, including a **375 × 667** phone, a 5 km radius with more results than the first page, and an empty-comparison/single-point fit. Filter changes leave the camera unchanged.
 
-Wrangler's local runtime could not fetch external `Request.cf` metadata through the cloud proxy and used its documented placeholder; this static application does not consume that metadata. The live Mini Reading reference URL, Geofabrik and Overpass were blocked by the build environment. Individual GitHub source files and the pinned ODbL redistribution were accessible.
+During iteration, two old data/test expectations were corrected, and one run was interrupted by Vite reloading a final source edit. The final 28-case run used frozen source and passed without retries.
 
-No official transaction/UPRN/EPC/Census/school/flood integrations are claimed. Those are documented extension points; fixture data remains visibly fictional. Nothing was published or deployed to a remote Cloudflare account.
+## Source verification
 
-The sold-price CLI was additionally exercised with an explicitly fictional CSV outside the public asset tree: it retained one candidate, reported zero geographic matches and did not infer a building. Actual national/monthly publisher files, genuine identifier-match quality, official sale publication and production deployment remain untested. The full browser suite passed; the strengthened overview readiness checks were rerun on both desktop and mobile after inspection of an early-loading screenshot.
+Both HMLR hashes match the supplied pins. July: 94,112 rows, 147 matches. August: 84,149 rows, 100 matches. Combined: 246 transactions / 245 UPRNs; one identical overlap, zero conflicts, 6,079 unmatched. All 246 transactions have OS coordinates; **177 in bounds (176 distinct UPRNs across 160 coordinate positions)** and **69 outside**. August-only recomputation confirms 65 in bounds.
 
-## Stage 3 — official source workflow
+The OS archive's MD5 matches its official metadata. Archive and uncompressed-member SHA-256 values are retained in the asset and [source audit](uprn-matching.md). All 41,676,575 CSV rows were streamed and validated. `versions.txt` establishes extraction **14 August 2026**, separately from the **September 2026 release** and **3 October retrieval**.
 
-- 30 unit tests pass, including source URL/scope validation, monthly-baseline/date checks, receipt consistency, row-level import auditing and explicit unmatched coverage.
-- TypeScript and production Vite build pass. The existing bundle-size warning remains.
-- CLI help runs. A separate synthetic transport smoke check exercised annual download/import/receipt/audit, monthly correction with retained baseline, existing-output refusal and malformed-input cleanup. This does not verify the live publisher schema or current terms.
-- Actual official-host access fails with proxy HTTP 403. The failed CLI download leaves neither an output dataset nor temporary files. No official release/date/terms or actual sale records were verified.
-- Browser flows were not rerun for this data-tooling-only change; no browser or map code changed. Stage-2 browser evidence remains above.
-- The patch is incremental against stage 2; clean application and byte comparison are checked during packaging. No commit, push or deployment.
+A separate Python CSV/ZIP audit independently compared every published transaction/UPRN pair and all 245 coordinate records with the raw sources: zero mismatches. Repeated coordinate extraction is byte-identical; regeneration of the final v2 asset is byte-identical. The 619 MB ZIP stays in ignored `raw/`; the 2.27 GB CSV was never extracted to disk.
+
+## Screenshots and limits
+
+Desktop/mobile fit and filter screenshots were captured; fit screenshots were visually inspected. Durable local copies (ignored) are `raw/screenshots/desktop-fit.png`, `mobile-fit.png`, `desktop-filters.png`, and `mobile-filters.png`. The browser suite also writes its captures to `test-results/`.
+
+Coverage is sparse and partial, not a historical archive or valuation dataset. No sale is assigned a postcode centroid or arbitrary OSM building. Coordinate observations, illustrative building rendering and fictional examples remain separate. Physical phones, Safari, Firefox, unusual landscape sizes and GPU/thermal performance are not verified. Existing vector-tile-spec and bundle-size warnings remain. No deployment check or deployment was run during this local task.
+
+## Integration with stage-6
+
+Reconciled the existing stage-6 coordinate implementation with the expanded lookup and browser-flow work. The original 100-coordinate audit and extractor, coordinate validation and map attribution are retained. The app uses one current renderer/schema path, with optional map points (off by default), an in-map-only filter, grouped co-located sales, exact date filtering, query clearing and explicit fit. The original relative transaction-age selector is superseded by the explicit “Sold on or after” date filter. Earlier verification above describes the pre-merge work; merge-specific checks are recorded in the handoff.

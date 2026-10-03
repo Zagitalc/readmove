@@ -1461,37 +1461,94 @@ dialog .provenance {
   accent-color: var(--green);
 }
 
-.official-sale-pin {
-  padding: 5px 8px;
-  border: 1px solid #fff;
-  border-radius: 4px;
-  background: #355c49;
-  color: white;
-  font: 600 11px system-ui;
-  box-shadow: 0 1px 5px #243d3a44;
+/* Fixed panel chrome; only the content scrolls, including on short mobile screens. */
+#official-sales {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.official-sale-pin[aria-pressed="true"] {
-  background: #242f29;
-  outline: 2px solid #d9e6b4;
-  z-index: 2;
+#official-sales[hidden] {
+  display: none;
 }
-.sold-locate,
-#clear-official-selection {
-  display: block;
-  margin: 8px 0;
-  padding: 5px 0;
-  font-size: 11px;
-  text-decoration: underline;
-  color: var(--green);
-}
-#sold-selected {
-  border-top: 1px solid var(--line);
+.sold-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px 5px 22px;
+  background: var(--paper);
   border-bottom: 1px solid var(--line);
-  margin: 14px 0;
-  padding-bottom: 12px;
+  font-size: 11px;
+}
+#sold-close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+}
+#sold-close svg {
+  width: 19px;
+  height: 19px;
+}
+.sold-body {
+  padding: 18px 22px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+.sold-body h2 {
+  overflow-wrap: anywhere;
+}
+.sale-select {
+  display: block;
+  margin-top: 10px;
+  min-height: 44px;
   font-size: 12px;
 }
-#sold-selected p {
-  font-size: 12px;
-  line-height: 1.5;
+#sold-back {
+  min-height: 44px;
+}
+#sold-since {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+#sold-query:disabled {
+  color: var(--muted);
+  background: var(--soft);
+}
+.sale-pin {
+  width: 22px;
+  height: 22px;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: #3e705c;
+  box-shadow: 0 1px 6px #20392c66;
+}
+.sale-pin.selected {
+  background: #9f6136;
+  width: 28px;
+  height: 28px;
+  z-index: 1;
+}
+.sale-pin:focus-visible {
+  outline: 3px solid #173f30;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  #official-sales {
+    max-height: min(50dvh, max(140px, calc(100dvh - 490px)));
+  }
+  #sold-query,
+  #sold-since {
+    font-size: 16px;
+  }
 }
