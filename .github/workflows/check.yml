@@ -4,22 +4,95 @@ on:
   pull_request:
 permissions:
   contents: read
+env:
+  WRANGLER_SEND_METRICS: "false"
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - run: npm ci
       - run: npm test
-      - run: npm run build
+      - name: Coordinate ingestion tests
+        run: python -m unittest discover -s tests/unit -p 'test_*.py'
+      - name: Production build and Cloudflare dry run
+        run: npm run cf:check
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - name: Save checked production assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-assets
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: browser-test-results
           path: test-results/
+
+  deploy:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://readmove.reading-maps.workers.dev
+    concurrency:
+      group: readmove-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Skip superseded main commits
+        id: head
+        shell: bash
+        run: |
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          test -n "$current"
+          if [ "$current" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping deployment: main has advanced."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.head.outputs.current == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        if: steps.head.outputs.current == 'true'
+      - uses: actions/download-artifact@v4
+        if: steps.head.outputs.current == 'true'
+        with:
+          name: production-assets
+          path: dist/
+      - name: Deploy checked assets to Readmove
+        if: steps.head.outputs.current == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the production environment."
+            exit 1
+          fi
+          npx --no-install wrangler deploy
+      - name: Check live homepage
+        if: steps.head.outputs.current == 'true'
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 https://readmove.reading-maps.workers.dev/ -o /dev/null

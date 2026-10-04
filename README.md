@@ -64,7 +64,9 @@ On Linux CI, use `npx playwright install --with-deps chromium`. If Chromium is a
 
 `wrangler.jsonc` names the deployment **readmove** and uses Workers Static Assets. No D1 database or Worker API is needed yet. `npm run cf:check` performs a deployment dry run; it does not publish. To test locally, build first and run `npm run cf:dev`.
 
-When **you** choose to deploy: `npx wrangler login`, then `npm run cf:deploy`. Use a new readmove Worker; do not point this configuration at Mini Reading. No Cloudflare account identifiers or credentials are included.
+The GitHub workflow now includes Python ingestion tests and a Cloudflare dry run. After the one-time environment/secrets setup, successful pushes to `main` deploy the checked build; pull requests only run checks. See [Cloudflare delivery and activation](docs/cloudflare.md). The workflow must be committed and merged before this is active.
+
+For a manual deployment: `npx wrangler login`, then `npm run cf:deploy`. Use a new readmove Worker; do not point this configuration at Mini Reading. No Cloudflare account identifiers or credentials are included.
 
 ## Local development handoff
 
