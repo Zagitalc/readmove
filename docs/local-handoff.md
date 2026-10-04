@@ -1,137 +1,44 @@
-# Apply stage 5 after stage 4
+# Local handoff — 3 October 2026
 
-`readmove-stage5.patch` adds the official UPRN identifier join, audit, app filter and tests. It applies to either the sequential stage-3/stage-4 result or the combined stage-3-and-4 patch; their final files are identical.
+## Current checkout: stage-6 merge
+
+The primary checkout is merging `codex/verified-sales` (`59c0b7b`) into `stage-6` (`9452c3e`). Conflicts were reconciled with the stage-6 controls, original coordinate audit and map attribution retained. Tests pass: 43 TypeScript, 2 Python, all 30 browser cases across the full run and corrected-assertion rerun; production build passes. The merge remains staged and uncommitted for review. Complete it with `git commit` when ready; do not start another merge.
+
+The remaining sections describe the earlier feature-worktree delivery. Its raw downloads and captures were not copied into this checkout. See [current verification](verification.md) for merge-specific checks.
+
+Starting checkout: clean detached HEAD at `02ae156` (stage 5 merge). No repository `AGENTS.md` was found. The actual local baseline was 6,325 sales and 100 August identifiers, with no coordinates or mapped-sale flow. The expected later cloud patch was absent. No changes were discarded; nothing has been committed, pushed or deployed. Mini Reading was not cloned or modified.
+
+## Delivered
+
+- Exact July/August release merging: 246 matched transactions, one identical overlap, no conflicts; per-match evidence retained. Ambiguous cases are excluded conservatively by the tested merger.
+- Streamed official OS coordinate extraction: 246 located transactions, 177 in bounds, 69 outside; 245 distinct UPRNs. The unchanged price asset and historical identifier-only v1 stay separate from the current v2 asset.
+- Verified sale points, keyboard/list selection and nearby comparisons. Search text and its filter clear on selection; intentional filters persist. Explicit measured fit, fixed close control and load/empty/error recovery.
+- Source/ingestion documentation, meaningful merger/coordinate/runtime/browser regressions and an ordered future roadmap.
+
+## Run and inspect
 
 ```sh
-git apply --check /path/to/readmove-stage5.patch
-git apply /path/to/readmove-stage5.patch
+npm ci --include=dev
 npm test
+python3 -m unittest discover -s tests/unit -p 'test_*.py'
 npm run build
 npm run dev
 ```
 
-Open Sold prices → Both categories → Only with an official UPRN. Expect 100 transactions; expand Transaction reference to see UPRN. Coordinates remain pending, so this patch adds no map pins. [The remaining OS download prerequisite](uprn-matching.md) is separate from applying the patch.
-
-Suggested commit: `Match sold transactions to official UPRN identifiers`
-
-Nothing committed, pushed or deployed. Resolve any local conflicts before applying; do not force-overwrite.
-
----
-
-# Apply stage 4 after stage 3
-
-The incremental `readmove-stage4.patch` includes the real 2025 residential sale subset, its source audit, a searchable Sold prices panel, reproducible preparation and tests. It contains no national CSV, secret or paid dependency.
+In another terminal, run `npm run test:browser`. This machine used:
 
 ```sh
-git apply --check /path/to/readmove-stage4.patch
-git apply /path/to/readmove-stage4.patch
-npm test
-npm run build
-npm run dev
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm run test:browser
 ```
 
-Open **Sold prices**. No new dependencies or download step are needed to view the bundled 6,325 records. They are postcode-area candidates, not verified map-building matches. Apply all earlier patches first; resolve any local conflicts rather than forcing the patch.
+The installed Playwright browser revision was missing, so fresh sessions used installed Google Chrome, with software WebGL and desktop/Pixel 7 emulation. This did not use the user's existing tab. A narrower 375 × 667 phone viewport is also checked. Final checks: 40 TypeScript unit tests, 2 Python coordinate tests, 28 browser tests and the production build pass. See [verification](verification.md) for evidence, limitations and screenshot locations.
 
-Suggested commit: `Add official Reading-area sold prices and address search`
+Manual route: Sold prices → RG1 4PF → Show mapped sale → change filters → Fit nearby sales → Back → Close. All types/category A/1 km produces five comparisons; flat/category A produces three. A date in 2026 produces an honest empty result, with Fit still showing the selection.
 
-No commit, push or deployment was made. Review and push yourself using your existing local checkout/remote. Earlier handoffs below describe their historical state; stage 4 resolves the Price Paid download restriction.
+Review the working diff and the small versioned v2 asset. Full national inputs remain ignored under `raw/`; no download is needed to use the bundled app. [Reproduction](uprn-matching.md) uses fresh output files and checksum pins. [Roadmap](next-stage.md) remains documentation only.
 
----
+Suggested commit message: `Add verified sale locations and fix nearby comparison flow`
 
-# Apply stage 3 after stage 2
+## Integration with stage-6
 
-`readmove-stage3.patch` adds the official HMLR downloader, source receipt, coverage audit and related tests. It contains no real transaction records. Apply from the local readmove checkout after your stage-2 changes:
-
-```sh
-git apply --check /path/to/readmove-stage3.patch
-git apply /path/to/readmove-stage3.patch
-npm test
-npm run build
-npm run data:sales:official -- --help
-```
-
-Review and resolve local edits if the check fails; do not force-overwrite. Commit suggestion: `Add official Land Registry download and coverage audit`. No commits, pushes or deployments were made. See [sold-prices.md](sold-prices.md) for the official-source command and the unresolved cloud network restriction.
-
----
-
-# Apply stage 2 after milestone 1
-
-The new deliverable, `readmove-stage2.patch`, is **incremental**: apply it to the milestone-1 files you already added. It does not assume a particular local commit SHA. A ZIP of the same patch is provided because the larger self-hosted geography increases the download size. Extract it first.
-
-From your local readmove checkout:
-
-```sh
-git status --short
-git apply --check /path/to/readmove-stage2.patch
-git apply /path/to/readmove-stage2.patch
-npm ci
-npm test
-npm run build
-npm run dev
-```
-
-If the check reports conflicts, reconcile your local edits; do not force-overwrite them. This patch replaces the old central-area JSON files with a v2 manifest, building chunks, vector tiles and lazy search/index files. It also adds the sold-price import foundations and comparable filters. No real sales are bundled.
-
-Suggested commit messages (run commits yourself):
-
-```text
-Build readmove 3D property research prototype
-```
-
-for milestone 1, then:
-
-```text
-Expand Reading map and add sold-price ingestion foundations
-```
-
-for this stage. No agent commit, push or deployment has been made. Continue using your existing `Zagitalc/readmove` remote and review staged files before you push.
-
----
-
-# Original milestone-1 handoff
-
-The deliverable is `readmove-milestone1.patch`, based on readmove's initial commit `2113e5f656e399bd4b771d215b884a82e0deac48`, which contains only `LICENSE`. It creates the new application files and does not change that licence. No commits or pushes were made by the agent.
-
-Download the patch from the chat to your machine. Run the following **yourself** inside your local `readmove` folder, substituting the patch path:
-
-```sh
-cd /path/to/your/readmove
-git status --short
-git apply --check /path/to/readmove-milestone1.patch
-git apply /path/to/readmove-milestone1.patch
-npm ci
-npm test
-npm run build
-npm run dev
-```
-
-Check existing local changes first. If `git apply --check` reports conflicts or files already exist, stop and reconcile those files; do not use a forced overwrite. The patch includes the lockfile and local geography, so you do not need the reference project or a data-download step to start.
-
-## Connect your local folder to GitHub
-
-If the folder is already your checkout of `Zagitalc/readmove`, keep its current remote. Verify with `git remote -v`; no remote change is needed.
-
-If you have not created a local checkout yet, the simplest path is to clone **readmove** first, then apply the patch there:
-
-```sh
-git clone https://github.com/Zagitalc/readmove.git /path/to/your/readmove
-cd /path/to/your/readmove
-git apply --check /path/to/readmove-milestone1.patch
-git apply /path/to/readmove-milestone1.patch
-```
-
-This clones the target repository, not Mini Reading. For an existing non-Git local folder, preserve its contents and use a separate fresh readmove checkout, then reconcile your own files there. Avoid creating unrelated history and force-pushing over the existing remote.
-
-Once you have reviewed and tested the result, you can commit and push it:
-
-```sh
-git switch -c milestone-1
-git add .
-git diff --cached --stat
-git commit -m "Build readmove property research prototype"
-git push -u origin milestone-1
-```
-
-Inspect staged files before committing. `node_modules`, caches, generated builds, test outputs and secrets are ignored. The patch is also ignored if you save it inside the checkout. GitHub authentication is handled by your local Git setup; never paste credentials into source files or this chat.
-
-The cloud agent cannot directly attach this remote workspace to an unprovided folder on your machine. Applying the patch in your local checkout makes that connection through your existing Git remote. Cloudflare publication is a separate action described in the README.
+Reconciled the existing stage-6 coordinate implementation with the expanded lookup and browser-flow work. The original 100-coordinate audit and extractor, coordinate validation and map attribution are retained. The app uses one current renderer/schema path, with optional map points (off by default), an in-map-only filter, grouped co-located sales, exact date filtering, query clearing and explicit fit. The original relative transaction-age selector is superseded by the explicit “Sold on or after” date filter. Earlier verification above describes the pre-merge work; merge-specific checks are recorded in the handoff.

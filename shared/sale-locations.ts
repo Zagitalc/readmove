@@ -43,7 +43,10 @@ export const saleLocationsSchema = z
     coordinates: z.array(
       z.object({
         uprn: uprnSchema,
-        position: positionSchema,
+        position: positionSchema.refine(
+          (position) => inBounds(position, [-9, 49, 3, 62]),
+          "Expected OS longitude/latitude within Great Britain",
+        ),
       }),
     ),
     coordinateSource: z
@@ -52,6 +55,8 @@ export const saleLocationsSchema = z
         url: z.url().refine((u) => u.startsWith("https://")),
         sha256: hash,
         snapshotDate: z.iso.date(),
+        release: z.string().regex(/^\d{4}-\d{2}$/),
+        retrievedOn: z.iso.date(),
         attribution: z.string().min(1),
       })
       .optional(),

@@ -1,11 +1,21 @@
-# Next stage: verified sale locations
+# Roadmap after verified sales
 
-The 2025 official residential price panel is implemented and audited. Keep it useful independently of map matching; there is no paid data requirement for this release.
+The local priorities are implemented: conservative July/August identifier merging, official OS coordinates, nearby-sale filters and explicit fit with desktop/mobile browser checks. Preserve the map-dominant design and finish each reliable foundation before starting another.
 
-1. Completed: the August 2026 official lookup matches 100 of 6,325 sales with zero conflicts. See [the matching audit](uprn-matching.md). Do not assume this covers all older transactions.
-2. Apply the saved OS network destinations (`www.ordnancesurvey.co.uk`, `api.os.uk`): current requests return proxy HTTP 403. Then obtain a versioned OS Open UPRN coordinate extract, verify licence/attribution and coordinate system, and audit transaction → UPRN → point joins.
-3. Keep points separate from OSM building identity, especially flats and multiple dwellings. Do not assign the nearest footprint silently.
-4. Connect reviewed locations to real comparable sales with type/date/category controls. Exclude unlocated records from distance queries and keep them available through address search.
-5. Add more annual source files or a complete baseline with explicit corrections/versioning. A 2025 file is not full historical coverage.
+A. **Monthly refreshes:** reproducible acquisition, release validation, coverage/difference reports and safe replacement of generated assets. Handle corrections/deletions and source retention explicitly.
 
-See [sold-prices.md](sold-prices.md) for the completed release, evidence, limitations and reproducible commands. Census, schools, EPC and flood layers remain later stages.
+B. **Comparable exploration:** refine distance/date/type/category controls, add transaction history and explain gaps. No formal valuations, unsupported adjustments or price/m² without reliable floor areas.
+
+C. **Exact property matches:** legitimate free identifier sources, retaining unresolved and ambiguous cases. Keep UPRNs distinct from building footprints, especially flats.
+
+D. **ONS context:** official neighbourhood polygons and aggregate statistics with geography editions, dates and denominators; explicitly area-level.
+
+E. **Schools:** DfE locations and dated inspection information. Proximity does not imply admission eligibility.
+
+F. **Environment:** official Environment Agency area context without unsupported property-specific risk scores.
+
+G. **Architecture:** improved procedural residential roofs/materials. Selective licensed GLBs later, with distance-based loading and measured budgets.
+
+H. **Measured usability:** performance, accessibility and mobile improvements based on observed browser/device behaviour. Physical phones, Safari and Firefox remain to be checked.
+
+No property-portal scraping, paid services, tracking, resident profiles or crime maps. See [source audit](uprn-matching.md) and [verification](verification.md).

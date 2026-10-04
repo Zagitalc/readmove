@@ -39,7 +39,11 @@ export class MapController {
       maxPitch: 65,
       renderWorldCopies: false,
       canvasContextAttributes: { antialias: true },
-      attributionControl: { compact: true },
+      attributionControl: {
+        compact: true,
+        customAttribution:
+          "© OS / HM Land Registry 2026",
+      },
     });
     this.map
       .getCanvas()

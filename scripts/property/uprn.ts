@@ -35,7 +35,7 @@ export async function joinUprnLookup(
     try {
       if (row.length !== 2)
         throw new Error("Expected transaction ID and UPRN columns");
-      const id = transactionIdSchema.parse(String(row[0]).toUpperCase());
+      const id = transactionIdSchema.parse(String(row[0]));
       const uprn = uprnSchema.parse(row[1]);
       if (!saleIds.has(id)) continue;
       const existing = matches.get(id) ?? new Set<string>();
