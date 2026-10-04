@@ -8,6 +8,9 @@ test("stage-6 optional points and in-map discovery survive the merge", async ({
   await expect(page.locator("#sold-location-status")).toContainText(
     "177 inside the map",
   );
+  await expect(page.locator("#sold-location-status")).toContainText(
+    "2026-07 + 2026-08 lookups",
+  );
   await expect(page.getByLabel("Show verified sale points")).not.toBeChecked();
   await expect(page.locator(".sale-pin")).toHaveCount(0);
   await page.locator("#sold-category").selectOption("");

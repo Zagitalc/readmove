@@ -97,3 +97,7 @@ The 6,079 unmatched transactions remain searchable. Monthly lookups are not a co
 ## Integration with stage-6
 
 Reconciled the existing stage-6 coordinate implementation with the expanded lookup and browser-flow work. The original 100-coordinate audit and extractor, coordinate validation and map attribution are retained. The app uses one current renderer/schema path, with optional map points (off by default), an in-map-only filter, grouped co-located sales, exact date filtering, query clearing and explicit fit. The original relative transaction-age selector is superseded by the explicit “Sold on or after” date filter. Earlier verification above describes the pre-merge work; merge-specific checks are recorded in the handoff.
+
+## Reviewed location refresh
+
+`npm run data:refresh -- --manifest config/property-refresh.json --run UNIQUE_NAME` downloads/reuses selected official releases, validates them and writes candidate assets plus a coverage report under ignored `raw/refresh/`. It preserves the published data. See [refresh instructions](docs/data-refresh.md) for offline reuse, release review and PR publication.

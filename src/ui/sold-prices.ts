@@ -79,7 +79,14 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
     frame(`<div class="eyebrow">HM LAND REGISTRY · REAL TRANSACTIONS</div><h2 id="sold-heading" tabindex="-1">${selected ? esc([selected.sale.address.saon, selected.sale.address.paon].filter(Boolean).join(", ")) : "Official sold prices"}</h2>
       ${selected ? `<button id="sold-back" class="text-link">Back to sold prices</button>${saleRecord(selected.sale, locations, selected, undefined, false)}<p class="fine-note">Selected official UPRN point. Building link unverified.</p><button id="sold-fit" class="primary">Fit nearby sales</button><p class="fine-note">Fits this property and all currently filtered comparable sales. Filters alone do not move the map.</p>` : `<p class="fine-note">${esc(data!.source.scope)}. ${data!.counts.residential.toLocaleString("en-GB")} residential transactions in selected Reading-area postcode districts.</p><p class="sold-scope">Addresses are not yet matched to map buildings. Only official in-bounds OS points are mapped. These records are not valuations or live listings.</p>`}
       <label class="sold-identifier-filter"><input id="sold-map-points" type="checkbox" ${!locations ? "disabled" : ""} /> Show verified sale points</label>
-      <p id="sold-location-status" class="fine-note">${locations ? `${locations.counts.identifierMatches} transactions have an official UPRN · ${locations.counts.coordinateMatches} have verified coordinates · ${located.size} inside the map. July + August 2026 lookups; limited historical coverage.` : "UPRN lookup unavailable. Sale search still works; reopen Sold prices to retry."}</p>
+      <p id="sold-location-status" class="fine-note">${
+        locations
+          ? `${locations.counts.identifierMatches} transactions have an official UPRN · ${locations.counts.coordinateMatches} have verified coordinates · ${located.size} inside the map. ${locations.sources
+              .map((source) => source.period)
+              .sort()
+              .join(" + ")} lookups; limited historical coverage.`
+          : "UPRN lookup unavailable. Sale search still works; reopen Sold prices to retry."
+      }</p>
       <label class="sold-search-label">Search sold addresses<input id="sold-query" type="search" placeholder="Street, town or postcode" autocomplete="off" ${selected ? 'disabled aria-describedby="sold-search-note"' : ""} /></label>${selected ? '<p id="sold-search-note" class="fine-note">Address search cleared for nearby comparisons. Use Back to search again.</p>' : ""}
       <div class="comparable-filters"><label>Property type<select id="sold-type"><option value="">All residential types</option><option value="detached">Detached</option><option value="semi-detached">Semi-detached</option><option value="terraced">Terraced</option><option value="flat">Flat / maisonette</option></select></label>
       <label>Transaction category<select id="sold-category"><option value="A">Standard (A)</option><option value="B">Additional (B)</option><option value="">Both categories</option></select></label>

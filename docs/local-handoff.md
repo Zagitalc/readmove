@@ -1,6 +1,16 @@
-# Local handoff — 3 October 2026
+# Local handoff — 4 October 2026
 
-## Current checkout: stage-6 merge
+## Reviewed refresh delivery
+
+The primary checkout was clean on `cloudflare-deployment` at `96d7fa4` before this work. Added a manual manifest-driven refresh, verified source acquisition/cache, streaming coordinate extraction, coverage/loss reporting and candidate-only output. No published assets, commits, pushes or deployments were changed by this work. See [data refresh](data-refresh.md).
+
+Local verification: 52 TypeScript tests, 3 Python tests, production build, and two targeted desktop/mobile browser cases pass. The UI now reads lookup periods from source metadata. A full offline run reused the retained official sources and scanned all 41,676,575 OS rows. Its candidate is byte-identical to the published v2 asset: 246 identifiers/located transactions, 177 in bounds, 69 outside, no conflicts. The ignored report is `raw/refresh/reproduce-2026-10-04/report.json`. Download tests use mocked HTTP; this run made no national download. Existing bundle-size and vector-tile warnings remain.
+
+The command deliberately keeps the audited 2025 transaction snapshot fixed. New release manifests need reviewed hashes and source evidence. Scheduling, automatic candidate promotion and Price Paid snapshot updates remain future work. Suggested commit: `Add reviewed property-location refresh and coverage reports`.
+
+The following notes are historical; the stage-6 merge was subsequently completed and deployed through GitHub Actions.
+
+## Historical stage-6 merge
 
 The primary checkout is merging `codex/verified-sales` (`59c0b7b`) into `stage-6` (`9452c3e`). Conflicts were reconciled with the stage-6 controls, original coordinate audit and map attribution retained. Tests pass: 43 TypeScript, 2 Python, all 30 browser cases across the full run and corrected-assertion rerun; production build passes. The merge remains staged and uncommitted for review. Complete it with `git commit` when ready; do not start another merge.
 

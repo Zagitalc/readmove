@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "sales": {
+    "path": "public/data/sales-2025.v1.json",
+    "sha256": "c74f09d9580606cea9e3433a9cef2132c0e7a22ff318982bbab6b1aedfe3802c"
+  },
+  "baseline": "public/data/sale-locations.v2.json",
+  "lookups": [
+    {
+      "url": "https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-jul-2026.csv",
+      "sha256": "1d05becac589365a0f87b81f06b9a79c83281a600f49267b7f18a36f91ef3254",
+      "retrievedOn": "2026-10-03",
+      "lastModified": "Mon, 28 Sep 2026 05:12:50 GMT",
+      "period": "2026-07",
+      "attribution": [
+        "Contains HM Land Registry data \u00a9 Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0.",
+        "UPRNs contain OS data \u00a9 Crown copyright and database rights 2026. This data is licensed under the Open Government Licence v3.0."
+      ],
+      "rows": 94112,
+      "bytes": 5169801,
+      "localFile": "raw/uprn-jul-2026/source.csv"
+    },
+    {
+      "url": "https://price-paid-data.publicdata.landregistry.gov.uk/pp-uprn-lookup-aug-2026.csv",
+      "sha256": "4a21a086c786ad5f9bb66c6d16abb9b84514146abcd52e1f983fec72fc38524f",
+      "retrievedOn": "2026-10-03",
+      "lastModified": "Mon, 28 Sep 2026 05:12:50 GMT",
+      "period": "2026-08",
+      "attribution": [
+        "Contains HM Land Registry data \u00a9 Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0.",
+        "UPRNs contain OS data \u00a9 Crown copyright and database rights 2026. This data is licensed under the Open Government Licence v3.0."
+      ],
+      "rows": 84149,
+      "bytes": 4624174,
+      "localFile": "raw/uprn-aug-2026/source.csv"
+    }
+  ],
+  "coordinates": {
+    "product": "OS Open UPRN",
+    "url": "https://api.os.uk/downloads/v1/products/OpenUPRN/downloads?area=GB&format=CSV&redirect",
+    "sha256": "107503d45bedaab7f74511766eedbd617f9ca3592113363711e94f4b6458d55a",
+    "csvSha256": "aafe9a43365469f8b57954583344947b8f877266b88b1d92823cd67259cecd98",
+    "member": "osopenuprn_202609.csv",
+    "releasePeriod": "2026-09",
+    "snapshotDate": "2026-08-14",
+    "retrievedOn": "2026-10-03",
+    "rows": 41676575,
+    "attribution": "Contains Ordnance Survey data \u00a9 Crown copyright and database right 2026. Licensed under the Open Government Licence v3.0.",
+    "bytes": 619271161,
+    "lastModified": "Thu, 17 Sep 2026 15:18:09 GMT",
+    "localFile": "raw/os-sep-2026/source.zip"
+  }
+}

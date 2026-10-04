@@ -2,7 +2,7 @@
 
 The local priorities are implemented: conservative July/August identifier merging, official OS coordinates, nearby-sale filters and explicit fit with desktop/mobile browser checks. Preserve the map-dominant design and finish each reliable foundation before starting another.
 
-A. **Monthly refreshes:** reproducible acquisition, release validation, coverage/difference reports and safe replacement of generated assets. Handle corrections/deletions and source retention explicitly.
+A. **Monthly refreshes:** manual manifest-driven acquisition, validation and candidate coverage reports are implemented; see [data refresh](data-refresh.md). Next: reviewed promotion and scheduling once proven, plus separate Price Paid snapshot refreshes with corrections/deletions. Existing published assets remain unchanged by refresh runs.
 
 B. **Comparable exploration:** refine distance/date/type/category controls, add transaction history and explain gaps. No formal valuations, unsupported adjustments or price/m² without reliable floor areas.
 
