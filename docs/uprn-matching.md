@@ -51,7 +51,7 @@ node --import tsx scripts/property/prepare-verified.ts public/data/sales-2025.v1
 cmp raw/rebuilt-sale-locations.v2.json public/data/sale-locations.v2.json
 ```
 
-Use fresh output paths; preparation refuses existing outputs. Downloads above are for a fresh raw directory—retain existing source files before refreshing. Source hashes are pinned to the reviewed releases; changed bytes require a new audit and deliberate pin/provenance update. OS extraction streams the ZIP member, hashes and validates every row, and keeps only requested UPRNs in memory. It reads to EOF to detect later conflicts; it does not extract the 2.27 GB CSV. Equal coordinates deduplicate; conflicting points are excluded as ambiguous. Invalid values abort before output. This is a reviewed release preparation tool, not an automated monthly refresh service.
+Use fresh output paths; preparation refuses existing outputs. Downloads above are for a fresh raw directory—retain existing source files before refreshing. Source hashes are pinned to the reviewed releases; changed bytes require a new audit and deliberate pin/provenance update. OS extraction streams the ZIP member, hashes and validates every row, and keeps only requested UPRNs in memory. It reads to EOF to detect later conflicts; it does not extract the 2.27 GB CSV. Equal coordinates deduplicate; conflicting points are excluded as ambiguous. Invalid values abort before output. The commands above reproduce the original release. The new [manifest-driven refresh command](data-refresh.md) supports a reviewed list of lookup releases, verified acquisition and candidate coverage reports; it is manually triggered and does not replace published assets.
 
 ## App flow
 
