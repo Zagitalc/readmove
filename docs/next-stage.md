@@ -8,7 +8,7 @@ B. **Comparable exploration:** refine distance/date/type/category controls, add 
 
 C. **Exact property matches:** legitimate free identifier sources, retaining unresolved and ambiguous cases. Keep UPRNs distinct from building footprints, especially flats.
 
-D. **ONS context:** official neighbourhood polygons and aggregate statistics with geography editions, dates and denominators; explicitly area-level.
+D. **ONS context:** Stage 9 bundles official 2021 LSOA boundaries with Census 2021 usual residents and published density, recording editions, dates and denominators. Next: further Census topics (age, tenure, households, car access) with explicit denominators, and an area-level panel when the map is clicked outside a building.
 
 E. **Schools:** DfE locations and dated inspection information. Proximity does not imply admission eligibility.
 
@@ -19,3 +19,7 @@ G. **Architecture:** improved procedural residential roofs/materials. Selective 
 H. **Measured usability:** performance, accessibility and mobile improvements based on observed browser/device behaviour. Physical phones, Safari and Firefox remain to be checked.
 
 No property-portal scraping, paid services, tracking, resident profiles or crime maps. See [source audit](uprn-matching.md) and [verification](verification.md).
+
+Stage 8 implements filter summaries/reset, full-result date/price/distance sorting and exact-UPRN snapshot history within the existing sold-price panel. Broader history still depends on additional reviewed official data; measured mobile performance remains a future stage.
+
+Stage 9 replaces the fictional neighbourhood polygons with 217 official ONS 2021 LSOAs and Census 2021 TS001/TS006 values, loaded only on demand. The next recommended stage is E (schools), then F (environment); H (physical-device measurement) remains open.

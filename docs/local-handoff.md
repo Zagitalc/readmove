@@ -1,4 +1,25 @@
-# Local handoff — 4 October 2026
+# Local handoff — 17 October 2026
+
+## Stage 9: official ONS neighbourhood context
+
+Implemented locally on `codex/stage-8`, on top of the uncommitted Stage 8 changes. The fictional neighbourhood rectangles are gone. `npm run data:neighbourhoods` fetches 217 ONS December 2021 LSOAs (BGC V5) intersecting the map and their Census 2021 TS001/TS006 values, caches the responses with receipts under ignored `raw/neighbourhood/`, and writes `public/data/neighbourhoods.v1.json` (225 kB, ~50 kB gzipped). The Neighbourhood mode and layer show fixed density classes with a legend and ONS attribution. Each building panel has a collapsed Neighbourhood statistics section naming the containing LSOA, its usual residents and residents per km². Both load the asset only on demand.
+
+Verification: 62 TypeScript tests, 3 Python tests and production build pass. All 36 desktop/mobile Playwright cases pass with installed Chrome, including the new Stage 9 case; one existing sources-dialog assertion was updated from the removed “not official LSOAs” text. Screenshots are under ignored `raw/stage-9-browser/captures/`. Offline rebuilds are byte-identical. Existing bundle-size and vector-tile warnings remain. Physical devices and other browser engines were not tested. On a phone the short-lived mode notice briefly overlaps the top of the legend, as it did before.
+
+Try Neighbourhood mode, then search “Town Hall” and open Neighbourhood statistics: Reading 019B, E01033415, 2,169 usual residents, 2,814 per km².
+
+No commit, push or deployment was performed. Earlier sections below describe previous stages.
+
+
+## Stage 8: comparable exploration
+
+Implemented locally on `codex/stage-8`, branched from the clean local `stage-7` checkout. Active filter summaries and keyboard-accessible reset preserve selection and camera. Sorts cover complete results before pagination: date/price in discovery, plus distance for comparisons. Expandable exact-UPRN history is independent of comparison filters and explicitly partial. No new source data, valuation claims or extra panels.
+
+Verification: 56 TypeScript tests, 3 Python tests and production build pass. All 34 desktop/mobile Playwright cases passed; after matching the sort menu to existing filter styles, the four Stage 8 cases passed again and the build passed again. Tests used fresh installed Chrome sessions on port 5174, not an existing user tab. Desktop/mobile filter screenshots were visually inspected and are retained under ignored `raw/stage-8-browser/`, alongside history captures. Existing bundle-size and vector-tile warnings remain. Physical devices and other browser engines were not tested.
+
+Try RG1 4PF for sorting, reset and single-record history. For two same-UPRN transactions, search RG2 6BS, choose 15 Lanesborough Street and expand history. The two rows remain visible even with a comparison date filter in 2026. Same coordinates alone never establish history.
+
+No commit, push or deployment was performed. Suggested commit: `Improve comparable sorting, filter reset and verified sale history`. Earlier sections below describe previous stages.
 
 ## Reviewed refresh delivery
 
