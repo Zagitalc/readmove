@@ -1,52 +1,57 @@
-import { pointInPolygon } from "../../shared/geo";
-import type { Neighbourhood, Position, Provenance } from "../../shared/types";
+import type { FeatureCollection } from "geojson";
+import {
+  lsoaAt,
+  neighbourhoodsSchema,
+  type Lsoa,
+  type Neighbourhoods,
+} from "../../shared/neighbourhoods";
+import type { Position } from "../../shared/types";
 
-const provenance: Provenance = {
-  source: "readmove development fixture",
-  date: "2026-10-02",
-  license: "CC0-1.0",
-  quality: "fixture",
-};
-/** Deliberately NOT real census geography or observations. */
-export const areas: Neighbourhood[] = [
-  {
-    id: "demo-west",
-    name: "West · illustrative area",
-    geographyType: "illustrative-area",
-    rings: [
-      [
-        [-0.985, 51.448],
-        [-0.972, 51.448],
-        [-0.972, 51.466],
-        [-0.985, 51.466],
-        [-0.985, 51.448],
-      ],
-    ],
-    population: 6400,
-    areaKm2: 1.8,
-    provenance,
+export const NEIGHBOURHOODS_URL = "/data/neighbourhoods.v1.json";
+/** Fixed published-value breaks, so colours mean the same thing in every view. */
+export const DENSITY_BREAKS = [2500, 5000, 7500, 10000] as const;
+export const DENSITY_COLOURS = [
+  "#e4ead9",
+  "#bfd2b2",
+  "#8fb398",
+  "#5f8f78",
+  "#3b6b5a",
+] as const;
+
+let pending: Promise<Neighbourhoods> | undefined;
+/** Lazy, once per page; a failed load can be retried by calling again. */
+export function loadNeighbourhoods(
+  load: (url: string) => Promise<unknown> = async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Neighbourhood data ${response.status}`);
+    return response.json();
   },
-  {
-    id: "demo-east",
-    name: "East · illustrative area",
-    geographyType: "illustrative-area",
-    rings: [
-      [
-        [-0.972, 51.448],
-        [-0.955, 51.448],
-        [-0.955, 51.466],
-        [-0.972, 51.466],
-        [-0.972, 51.448],
-      ],
-    ],
-    population: 5200,
-    areaKm2: 2.4,
-    provenance,
-  },
-];
+): Promise<Neighbourhoods> {
+  pending ??= load(NEIGHBOURHOODS_URL)
+    .then((raw) => neighbourhoodsSchema.parse(raw))
+    .catch((error) => {
+      pending = undefined;
+      throw error;
+    });
+  return pending;
+}
+
 export function neighbourhoodAt(
   position: Position,
-  candidates = areas,
-): Neighbourhood | undefined {
-  return candidates.find((area) => pointInPolygon(position, area.rings));
+  data: Neighbourhoods,
+): Lsoa | undefined {
+  return lsoaAt(position, data.areas);
+}
+
+export function areaFeatures(data?: Neighbourhoods): FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: (data?.areas ?? []).flatMap((area) =>
+      area.polygons.map((rings) => ({
+        type: "Feature" as const,
+        geometry: { type: "Polygon" as const, coordinates: rings },
+        properties: { code: area.code, density: area.residentsPerKm2 },
+      })),
+    ),
+  };
 }

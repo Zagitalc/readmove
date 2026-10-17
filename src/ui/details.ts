@@ -1,6 +1,6 @@
-import { centre, distanceMetres } from "../../shared/geo";
+import { distanceMetres } from "../../shared/geo";
+import type { Lsoa, Neighbourhoods } from "../../shared/neighbourhoods";
 import type { Building, Geography, Provenance } from "../../shared/types";
-import { neighbourhoodAt } from "../neighbourhood/areas";
 import {
   buildingTitle,
   comparableSales,
@@ -48,7 +48,6 @@ export function renderDetails(
   const location = sampleEnabled
     ? demo.locations.find((p) => p.buildingId === building.id)
     : undefined;
-  const area = neighbourhoodAt(centre(building.rings));
   const transactions = location
     ? demo.transactions
         .filter((t) => t.propertyRef === location.id)
@@ -79,7 +78,7 @@ export function renderDetails(
       <h3>The property behind the footprint</h3>
       <dl class="facts"><div><dt>Address</dt><dd>${e(building.address ?? "Not available")}</dd></div><div><dt>UPRN</dt><dd>Not linked</dd></div><div><dt>EPC / floor area</dt><dd>Not connected</dd></div><div><dt>Price per m²</dt><dd>Not available</dd></div></dl>
       <p class="fine-note">One building can contain several homes. A footprint is not a legal property boundary.</p>
-      <details class="area-context"><summary>Neighbourhood example <span class="tiny-tag">DEMO</span></summary><p>${e(area?.name ?? "Outside fixture coverage")}. Illustrative areas only; official LSOAs and Census statistics are not connected.</p><p>Area-level statistics describe an area, never an individual home or resident.</p></details>
+      <details class="area-context" id="area-context"><summary>Neighbourhood statistics <span class="tiny-tag">ONS</span></summary><div id="area-context-body" aria-live="polite">${renderAreaContext({ status: "loading" })}</div></details>
       ${provenanceHtml(geography.provenance)}
       <span class="record-id">Footprint reference: ${e(building.id)}</span>
     `
@@ -110,6 +109,32 @@ export function renderDetails(
     }
     <button id="save-building" class="secondary full">${saved ? "Remove from comparison" : "Add building to comparison"} ${icon("arrow")}</button>
   `;
+}
+
+export type AreaState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; data: Neighbourhoods; area?: Lsoa };
+const whole = (value: number) =>
+  Math.round(value).toLocaleString("en-GB", { maximumFractionDigits: 0 });
+
+/** Area-level only: a building centre picks an LSOA, never a household. */
+export function renderAreaContext(state: AreaState): string {
+  if (state.status === "loading")
+    return "<p>Loading official area statistics…</p>";
+  if (state.status === "error")
+    return "<p>Official area statistics could not load. Close and reopen the building to retry.</p>";
+  const { data, area } = state;
+  if (!area)
+    return "<p>This footprint centre is outside the bundled 2021 LSOA coverage. No area statistics are shown.</p>";
+  const [residents, density] = [
+    data.statistics.find((s) => s.table === "TS001")!,
+    data.statistics.find((s) => s.table === "TS006")!,
+  ];
+  return `<p class="area-name"><strong>${e(area.name)}</strong> <span class="record-id">${e(area.code)}</span></p>
+    <dl class="facts"><div><dt>Usual residents</dt><dd>${whole(area.usualResidents)}</dd></div><div><dt>Residents per km²</dt><dd>${whole(area.residentsPerKm2)}</dd></div></dl>
+    <p>Census 2021 (${e(residents.table)}, ${e(density.table)}) for the whole Lower layer Super Output Area containing this footprint’s centre. LSOAs typically hold 1,000–3,000 people. Values describe the area on Census Day, 21 March 2021, never this building or its residents.</p>
+    <p>${data.attribution.map(e).join(". ")}. <a href="${e(data.licensePage)}" target="_blank" rel="noopener">Licence ↗</a></p>`;
 }
 
 export function renderComparison(buildings: Building[]): string {

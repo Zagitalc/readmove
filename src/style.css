@@ -727,6 +727,12 @@ summary {
   color: var(--muted);
   font-size: 11px;
 }
+.area-context .area-name {
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
 .provenance {
   border-top: 1px solid var(--line);
   margin-top: 20px;
@@ -878,20 +884,22 @@ summary {
   font-size: 11px;
   font-weight: 550;
 }
-.area-legend > span {
+.density-scale {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+  padding: 0;
+}
+.density-scale li {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 10px 0;
 }
-.area-legend i {
+.density-scale i {
   width: 24px;
-  height: 8px;
-  background: #b5caaa;
-}
-.area-legend i + i {
-  background: #719b83;
-  margin-left: 10px;
+  height: 10px;
+  border: 1px solid rgba(59, 107, 90, 0.35);
 }
 .area-legend small {
   color: var(--muted);
@@ -1261,8 +1269,9 @@ dialog .provenance {
   .area-legend strong {
     font-size: 10px;
   }
-  .area-legend > span {
+  .density-scale {
     margin: 7px 0;
+    gap: 2px;
   }
   .notice {
     bottom: auto;

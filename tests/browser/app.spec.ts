@@ -318,7 +318,9 @@ test("details fit the viewport and sources remain accessible", async ({
     ),
   ).toBe(true);
   await page.getByRole("button", { name: "Sources & notes" }).click();
-  await expect(page.getByRole("dialog")).toContainText("not official LSOAs");
+  await expect(page.getByRole("dialog")).toContainText(
+    "Figures describe whole areas, never an individual home",
+  );
   await expect(page.getByRole("dialog")).toContainText("2026-09-04");
   await page.getByRole("button", { name: "Close sources" }).click();
   await expect(page.getByRole("dialog")).toBeHidden();

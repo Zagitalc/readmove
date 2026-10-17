@@ -1,3 +1,4 @@
+import { DENSITY_BREAKS, DENSITY_COLOURS } from "../neighbourhood/areas";
 export const icon = (
   name: "search" | "home" | "layers" | "arrow" | "close" | "pin",
 ) => {
@@ -25,7 +26,7 @@ export function shell(): void {
     <nav class="modes" aria-label="Map modes">
       <button data-mode="explore" aria-pressed="true">Explore</button>
       <button data-mode="property" aria-pressed="false">Property</button>
-      <button data-mode="neighbourhood" aria-pressed="false">Neighbourhood <span class="tiny-tag">DEMO</span></button>
+      <button data-mode="neighbourhood" aria-pressed="false">Neighbourhood</button>
       <button id="sold-open" aria-expanded="false" aria-controls="official-sales">Sold prices</button>
     </nav>
     <aside id="intro" class="intro">
@@ -52,10 +53,10 @@ export function shell(): void {
       <h2>Make it your map</h2>
       <label>3D buildings<input type="checkbox" id="layer-buildings" checked /></label>
       <label>Place labels<input type="checkbox" id="layer-labels" checked /></label>
-      <label>Area density <span class="tiny-tag">DEMO</span><input type="checkbox" id="layer-neighbourhood" /></label>
-      <p>Area boundaries and population are illustrative, not Census data.</p>
+      <label>Population density <span class="tiny-tag">CENSUS 2021</span><input type="checkbox" id="layer-neighbourhood" /></label>
+      <p>Official ONS 2021 LSOAs. Area-level figures only.</p>
     </section>
-    <div id="area-legend" class="area-legend" hidden><strong>Illustrative population density</strong><span><i></i> Lower <i></i> Higher</span><small>Fictional areas · not LSOAs or resident data</small></div>
+    <div id="area-legend" class="area-legend" hidden><strong>Usual residents per km²</strong><ol class="density-scale">${DENSITY_COLOURS.map((colour, i) => `<li><i style="background:${colour}"></i>${i === 0 ? `Under ${DENSITY_BREAKS[0].toLocaleString("en-GB")}` : i === DENSITY_BREAKS.length ? `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}+` : `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}–${(DENSITY_BREAKS[i] - 1).toLocaleString("en-GB")}`}</li>`).join("")}</ol><small>Census 2021 · ONS LSOA areas · not individual homes</small></div>
     <div class="place-dock" aria-label="Explore local places"><span>TAKE A LOOK AROUND</span><div id="place-buttons"></div></div>
     <div class="stream-status"><span id="detail-status" role="status">Loading nearby building detail…</span><button id="retry-detail" hidden>Retry detail</button></div>
     <footer class="map-footer"><span class="dot"></span><span id="geography-status">Loading local geography…</span><button id="about">Sources &amp; notes ↗</button></footer>
