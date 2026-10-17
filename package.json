@@ -20,7 +20,8 @@
     "data:sales:official": "tsx scripts/property/official.ts",
     "data:sales:prepare": "tsx scripts/property/prepare.ts",
     "data:sales:uprn": "tsx scripts/property/prepare-uprn.ts",
-    "data:refresh": "tsx scripts/property/refresh.ts"
+    "data:refresh": "tsx scripts/property/refresh.ts",
+    "data:neighbourhoods": "tsx scripts/neighbourhood/import.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",
