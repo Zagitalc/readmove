@@ -1,5 +1,13 @@
 # Local handoff — 18 October 2026
 
+## Stage 11: flood-zone context and nav fix
+
+Uncommitted on top of Stage 10. The nav highlight now follows the open panel, so Sold prices is highlighted when open and Schools no longer stays lit. New **Flood** mode and layer: Environment Agency Flood Zones 2 and 3 drawn beneath buildings with a legend and attribution, plus a lazy Flood zone context section in each building panel (centre and outline reported separately, "not within the mapped zones" never phrased as safe, link to the GOV.UK long-term flood risk check). `npm run data:flood` pages the EA OGC API (2,894 features), checksums each page, clips and simplifies (4 m) to `public/data/flood-zones.v1.json` (3 MB, ~0.6 MB gzipped, byte-identical offline rebuilds). Nothing loads until used.
+
+Verification: 78 TypeScript tests, 3 Python tests and the build pass; all 42 desktop/mobile Playwright cases pass (installed Chrome), including the new Stage 11 flood and nav-highlight cases. Screenshots are under ignored `raw/stage-11-browser/`. The Thames/Kennet floodplains render where expected; Christchurch Meadows is Zone 3 and the town centre is outside the zones. Physical devices and other engines were not tested. The 3 MB asset is the largest on-demand download so far; measuring it on a phone is part of the usability stage.
+
+No commit, push or deployment was performed.
+
 ## Stage 10: official schools
 
 Stage 9 was merged to `main` and deployed; this work is uncommitted on the local `stage-8` checkout. `npm run data:schools -- --date 20261018` builds `public/data/schools.v1.json` (40 kB, 151 open DfE establishments) from the GIAS full CSV, with receipt/checksum caching under ignored `raw/schools/`, BNG→WGS84 conversion and byte-identical offline rebuilds. New **Schools** mode and layer: blue circle markers, a clickable-marker/keyboard list panel with search, phase filter, Show on map, official record and website links; and a Nearby schools section (five nearest within 1.5 km, straight-line) in each building panel. Nothing loads until used. No ratings, catchments or admission claims.

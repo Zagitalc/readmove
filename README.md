@@ -28,6 +28,7 @@ Vite serves port 5173. Geography is already bundled. For a production build, run
 - Wider-area search across 49,490 names/addresses; a whole-area overview and visible loading/coverage status.
 - A clearly marked example home with **fictional** transaction history and nearby sample sales. The records are manually associated with real footprints for demonstration; they are not facts about those buildings.
 - A session-only, three-building comparison workflow. No tracking or persistent user profile.
+- A Flood mode/layer for Environment Agency Flood Zones 2 and 3 (rivers and sea, present day, ignoring defences) plus a per-building context section. Planning designation only; no property risk score.
 - A Schools mode/layer with a searchable list, phase filter and, in each building panel, the five nearest open schools by straight-line distance, all loaded only on demand.
 - An optional official population-density layer: 217 ONS December 2021 LSOAs with Census 2021 usual residents and published density, lazily loaded, plus the containing LSOA in each building panel. Area-level only.
 - Local source/provenance panel, runtime building/transaction validation, unit tests and Playwright flows.
@@ -50,7 +51,9 @@ Search the local names or a mapped address, try “Town Hall”, or choose **Exp
 
 **Official schools:** 151 open DfE Get Information about Schools establishments in the map box (extract 18 October 2026), at their published locations. Distances are straight-line; there are no catchments, admission claims or inspection ratings.
 
-**Not integrated:** EPC/floor areas, further Census topics, Ofsted inspections, flood mapping and authorised current listings. Missing records are shown as unavailable. See [data sources](docs/data-sources.md).
+**Official flood zones:** Environment Agency Flood Map for Planning Flood Zones 2 and 3 (revision 20 May 2026), clipped to the map and simplified to within 4 m. They describe areas of land, exclude surface water, groundwater and reservoirs, and are not a property flood risk.
+
+**Not integrated:** EPC/floor areas, further Census topics, Ofsted inspections, surface-water and groundwater flood data and authorised current listings. Missing records are shown as unavailable. See [data sources](docs/data-sources.md).
 
 ## Verify
 
@@ -125,3 +128,7 @@ those exact codes, caches responses with SHA-256 receipts under ignored
 ## Official schools
 
 `npm run data:schools -- --date YYYYMMDD` downloads (or reuses) the DfE GIAS all-establishment CSV for that extract date, caches it with a SHA-256 receipt under ignored `raw/schools/`, and writes `public/data/schools.v1.json`. `--offline` rebuilds from the cache. See [data sources](docs/data-sources.md#schools-implemented).
+
+## Official flood zones
+
+`npm run data:flood` pages through the Environment Agency OGC API for the map box, caches the raw pages and a checksum manifest under ignored `raw/flood/`, and writes `public/data/flood-zones.v1.json` (3 MB, ~0.6 MB gzipped). `--offline` rebuilds identically from the cache. See [data sources](docs/data-sources.md#flood-zones-implemented).

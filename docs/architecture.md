@@ -7,12 +7,14 @@
 | `shared/config.ts`                   | Region name, bounds, origin and initial camera                                      |
 | `shared/types.ts`                    | Data contracts and runtime validation                                               |
 | `shared/geo.ts`                      | Bounds, geographic distances and polygon matching with holes                        |
-| `shared/integrations.ts`             | Future identifier and flood-source contracts                                        |
+| `shared/integrations.ts`             | Future identifier contracts                                                         |
+| `shared/flood.ts`                    | Flood-zone asset contract and point/footprint zone lookup                           |
 | `shared/schools.ts`, `shared/bng.ts` | School asset contract; British National Grid → WGS84 conversion                     |
 | `src/map`                            | MapLibre style, camera, hit testing, layer visibility, local labels                 |
 | `src/scene`                          | Independent procedural geometry, Three.js shared-context rendering, selection       |
 | `src/property`                       | Property/transaction validation, local identity lookup, sample comparable selection |
 | `src/neighbourhood`                  | Lazy official LSOA asset loading, density classes and area lookup                   |
+| `src/flood`                          | Lazy Environment Agency flood-zone asset loading and map features                   |
 | `src/schools`                        | Lazy DfE school asset loading, filtering and straight-line nearest-school search    |
 | `src/ui`                             | Shell, escaped source rendering, detail/comparison panels and keyboard search       |
 | `scripts/geography`                  | Pinned ODbL subset import and provenance hashes                                     |
@@ -47,7 +49,7 @@ Point-in-polygon matching includes outer boundaries, excludes holes and returns 
 
 ## State and UX
 
-Selection, map layers, the example workflow and up to three comparison IDs stay in memory. No cookies, analytics or storage are used. Search indexes only bundled names/addresses/IDs. Modes are layer presets; toggles override them. Neighbourhood mode shows official ONS data and Schools mode shows official DfE locations. An Environment mode is not shown until data exists.
+Selection, map layers, the example workflow and up to three comparison IDs stay in memory. No cookies, analytics or storage are used. Search indexes only bundled names/addresses/IDs. Modes are layer presets; toggles override them. Neighbourhood mode shows official ONS data and Schools mode shows official DfE locations. Flood mode shows Environment Agency Flood Zones.
 
 Mobile detail panels occupy at most 53% of the viewport and scroll internally; close controls restore the map. Search supports arrow keys, Enter and Escape. A native dialog handles source notes and focus containment. A read-only test hook exists only in Vite development builds. Browser tests exercise real map rendering and selection, not a replacement mock map.
 
@@ -79,3 +81,9 @@ Reconciled the existing stage-6 coordinate implementation with the expanded look
 ## Schools
 
 `schools.v1.json` (40 kB) is fetched once, only when the Schools mode/layer is used or a building panel's Nearby schools section is opened; a failed load is retried on the next request. A MapLibre circle layer draws the points and the side panel provides the keyboard- and screen-reader-accessible list (name/postcode/URN search, phase filter, explicit Show on map). Filtering never moves the camera. The building panel lists the five nearest schools within 1.5 km from the footprint centre by great-circle distance. The UI repeats that distance is not a route, catchment or admission eligibility and shows no inspection rating.
+
+## Flood zones
+
+`flood-zones.v1.json` (3 MB, ~0.6 MB gzipped) is fetched once, only when the Flood mode/layer is used or a building panel's Flood zone context is opened. Two MapLibre fill layers draw Zone 2 beneath Zone 3. A building lookup reports separately whether the footprint centre and whether any vertex of its outline fall inside a published zone, so an edge touch is neither hidden nor overstated, and a miss is phrased as "not within the mapped zones", never as safe. The panel repeats that Flood Zones are an area-of-land planning designation (present day, ignoring defences, rivers and sea only), links to the GOV.UK long-term flood risk service for address-level checks, and carries the Environment Agency attribution. Only one mode is active at a time; layer toggles can combine layers, and legends stack.
+
+The nav highlight is derived from what is open: Sold prices or Schools while their panels are open, otherwise the last chosen map mode.
