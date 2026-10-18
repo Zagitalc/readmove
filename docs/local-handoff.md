@@ -1,5 +1,15 @@
 # Local handoff — 18 October 2026
 
+## Stage 12: measured usability
+
+Uncommitted on top of Stage 11. Added `scripts/measure/perf.ts` (`npm run measure`) and [docs/performance.md](performance.md) with live-site load numbers for desktop, fast and slow 4G phone profiles and a WebKit iPhone profile. Installed Playwright WebKit and added `@axe-core/playwright` (dev dependency, pinned). `playwright.config.ts` gains opt-in WebKit projects (`PW_WEBKIT=1`). New `tests/browser/a11y.spec.ts` scans every mode, panel and a fully expanded building panel.
+
+Fixes it drove: darkened all muted greys below 4.5:1 contrast (`src/style.css`), `role="region"` on the place dock, and the status toast no longer intercepts map taps (found by WebKit on a short iPhone viewport).
+
+Verification: 78 TypeScript tests, 3 Python tests and the build pass; all 46 browser tests pass in Chromium and in WebKit. Firefox could not be tested: Playwright's Firefox build will not start on this macOS. Physical iPhone/Android and screen readers are still to do.
+
+No commit, push or deployment was performed.
+
 ## Stage 11: flood-zone context and nav fix
 
 Uncommitted on top of Stage 10. The nav highlight now follows the open panel, so Sold prices is highlighted when open and Schools no longer stays lit. New **Flood** mode and layer: Environment Agency Flood Zones 2 and 3 drawn beneath buildings with a legend and attribution, plus a lazy Flood zone context section in each building panel (centre and outline reported separately, "not within the mapped zones" never phrased as safe, link to the GOV.UK long-term flood risk check). `npm run data:flood` pages the EA OGC API (2,894 features), checksums each page, clips and simplifies (4 m) to `public/data/flood-zones.v1.json` (3 MB, ~0.6 MB gzipped, byte-identical offline rebuilds). Nothing loads until used.
