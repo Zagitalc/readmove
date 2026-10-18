@@ -1,7 +1,11 @@
 import type { FeatureCollection } from "geojson";
 import type { StyleSpecification } from "maplibre-gl";
 import type { Building, Geography } from "../../shared/types";
-import { areas } from "../neighbourhood/areas";
+import {
+  areaFeatures,
+  DENSITY_BREAKS,
+  DENSITY_COLOURS,
+} from "../neighbourhood/areas";
 
 export function buildingFeatures(buildings: Building[]): FeatureCollection {
   return {
@@ -53,14 +57,9 @@ export function mapStyle(geography: Geography): StyleSpecification {
       buildings: { type: "geojson", data: buildingFeatures([]) },
       areas: {
         type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: areas.map((a) => ({
-            type: "Feature",
-            geometry: { type: "Polygon", coordinates: a.rings },
-            properties: { id: a.id, density: a.population / a.areaKm2 },
-          })),
-        },
+        data: areaFeatures(),
+        attribution:
+          'Source: <a href="https://www.ons.gov.uk/methodology/geography/licences" target="_blank" rel="noopener">ONS</a> · OGL v3.0 · Contains OS data © Crown copyright 2025',
       },
     },
     layers: [
@@ -109,15 +108,15 @@ export function mapStyle(geography: Geography): StyleSpecification {
         layout: { visibility: "none" },
         paint: {
           "fill-color": [
-            "interpolate",
-            ["linear"],
+            "step",
             ["get", "density"],
-            2000,
-            "#b5caaa",
-            4000,
-            "#719b83",
-          ],
-          "fill-opacity": 0.28,
+            DENSITY_COLOURS[0],
+            ...DENSITY_BREAKS.flatMap((limit, i) => [
+              limit,
+              DENSITY_COLOURS[i + 1],
+            ]),
+          ] as never,
+          "fill-opacity": 0.45,
         },
       },
       {
@@ -126,9 +125,9 @@ export function mapStyle(geography: Geography): StyleSpecification {
         source: "areas",
         layout: { visibility: "none" },
         paint: {
-          "line-color": "#678c74",
-          "line-width": 1.5,
-          "line-dasharray": [4, 3],
+          "line-color": "#3b6b5a",
+          "line-width": ["interpolate", ["linear"], ["zoom"], 11, 0.6, 16, 1.6],
+          "line-opacity": 0.7,
         },
       },
       {

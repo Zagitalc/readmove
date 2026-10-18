@@ -11,7 +11,7 @@
 | `src/map`                | MapLibre style, camera, hit testing, layer visibility, local labels                 |
 | `src/scene`              | Independent procedural geometry, Three.js shared-context rendering, selection       |
 | `src/property`           | Property/transaction validation, local identity lookup, sample comparable selection |
-| `src/neighbourhood`      | Explicitly fictional area polygons and area lookup                                  |
+| `src/neighbourhood`      | Lazy official LSOA asset loading, density classes and area lookup                   |
 | `src/ui`                 | Shell, escaped source rendering, detail/comparison panels and keyboard search       |
 | `scripts/geography`      | Pinned ODbL subset import and provenance hashes                                     |
 
@@ -41,11 +41,11 @@ The current example explicitly uses `manual-fixture` locations, fictional transa
 
 ## Area statistics
 
-Point-in-polygon matching includes outer boundaries, excludes holes and returns an explicit missing result. Shared-boundary ties use source order; official data ingestion should detect overlaps and specify a consistent boundary rule. The two current demo rectangles and their populations are entirely fictional and are not LSOAs. Real ONS ingestion must retain geography codes, boundary edition, census year and denominator methodology.
+Point-in-polygon matching includes outer boundaries, excludes holes and returns an explicit missing result. Shared-boundary ties resolve to the first LSOA in code order. `shared/neighbourhoods.ts` validates the ONS asset: unique 2021 LSOA codes, closed rings, positive resident counts, both Census tables, the boundary edition/product, Census reference date, denominators, licence and per-source checksums. A building panel looks up the LSOA containing its footprint bounding-box centre; this is area context, not a property attribute. The asset (225 kB, ~50 kB gzipped) loads only when the density layer is enabled or the panel's Neighbourhood statistics section is opened. The layer uses fixed published-density classes so colours mean the same thing at every zoom.
 
 ## State and UX
 
-Selection, map layers, the example workflow and up to three comparison IDs stay in memory. No cookies, analytics or storage are used. Search indexes only bundled names/addresses/IDs. Modes are layer presets; toggles override them. Official-data modes such as Schools and Environment are not shown until data exists.
+Selection, map layers, the example workflow and up to three comparison IDs stay in memory. No cookies, analytics or storage are used. Search indexes only bundled names/addresses/IDs. Modes are layer presets; toggles override them. Neighbourhood mode now shows official ONS data. Schools and Environment modes are not shown until data exists.
 
 Mobile detail panels occupy at most 53% of the viewport and scroll internally; close controls restore the map. Search supports arrow keys, Enter and Escape. A native dialog handles source notes and focus containment. A read-only test hook exists only in Vite development builds. Browser tests exercise real map rendering and selection, not a replacement mock map.
 

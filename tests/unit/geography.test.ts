@@ -13,7 +13,6 @@ import {
   positionSchema,
   type Position,
 } from "../../shared/types";
-import { neighbourhoodAt } from "../../src/neighbourhood/areas";
 import { parseGeography } from "../../src/property/data";
 
 describe("geographic boundaries", () => {
@@ -55,11 +54,6 @@ describe("geographic boundaries", () => {
     expect(pointInPolygon([1.5, 1.5], rings)).toBe(false);
     expect(pointInPolygon([1, 1.5], rings)).toBe(false);
     expect(pointInPolygon([5, 5], rings)).toBe(false);
-  });
-  it("identifies area-level fixture coverage without inventing a match", () => {
-    expect(neighbourhoodAt([-0.98, 51.459])?.id).toBe("demo-west");
-    expect(neighbourhoodAt([-0.96, 51.459])?.id).toBe("demo-east");
-    expect(neighbourhoodAt([0, 51])).toBeUndefined();
   });
   it("computes distances in metres and footprint bounds consistently", () => {
     expect(distanceMetres([0, 0], [0, 1])).toBeCloseTo(111195, 0);

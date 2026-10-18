@@ -148,3 +148,30 @@ The fictional example exposes distance/type/age with a fixed as-of date. The off
 4. Build a bounded versioned sale index or D1 query only if persistent query needs justify it.
 5. Extend the existing real-data panel with matched locations once identity checks pass.
 6. Add type/tenure/recency controls, stale-date warnings and comparable tests against the audited data.
+
+## Stage 8: comparable exploration
+
+Discovery results support newest/oldest date and ascending/descending price.
+Selected-property comparisons additionally support nearest-first distance, the
+default. Sorting covers the full filtered result set before pagination and uses
+transaction IDs to make equal-value ordering deterministic. Sorting and filter
+changes leave the camera alone; Fit remains an explicit action.
+
+The active-filter summary lists only controls affecting the current view. Reset
+clears discovery query/location restrictions and restores all residential types,
+category A, 1 km and all snapshot dates. It preserves selection, point visibility
+and the chosen sort order. Discovery and comparison sort preferences are separate
+and persist through Back and subsequent selections.
+
+The selected sale has a collapsed Same-UPRN transaction history section. History
+includes the selected transaction and other records with the exact same verified,
+non-ambiguous UPRN in this snapshot, ordered newest first. It does not use address
+similarity or shared coordinates, and comparison filters do not hide its records.
+Future-dated transactions are excluded. History is partial; no price-growth or
+valuation claims are made. A single record is explicitly described as having no
+other available same-UPRN transactions, not proof that the property never sold.
+
+Empty comparison results explain the sparse location coverage and suggest changing
+filters. Missing results do not establish that no nearby sales occurred. Reset,
+sorting and history stay inside the existing scrollable panel with a fixed close
+control; no additional dashboard panel is introduced.

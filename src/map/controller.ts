@@ -2,7 +2,9 @@ import * as maplibre from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { REGION } from "../../shared/config";
 import { centre } from "../../shared/geo";
+import type { Neighbourhoods } from "../../shared/neighbourhoods";
 import type { Building, Geography, Position } from "../../shared/types";
+import { areaFeatures } from "../neighbourhood/areas";
 import { BuildingLayer } from "../scene/layer";
 import { mapStyle, buildingFeatures } from "./style";
 import { BuildingRepository } from "./repository";
@@ -41,8 +43,7 @@ export class MapController {
       canvasContextAttributes: { antialias: true },
       attributionControl: {
         compact: true,
-        customAttribution:
-          "© OS / HM Land Registry 2026",
+        customAttribution: "© OS / HM Land Registry 2026",
       },
     });
     this.map
@@ -171,6 +172,11 @@ export class MapController {
         layers.neighbourhood ? "visible" : "none",
       );
     for (const label of this.labels) label.getElement().hidden = !layers.labels;
+  }
+  showAreas(data: Neighbourhoods): void {
+    (this.map.getSource("areas") as maplibre.GeoJSONSource).setData(
+      areaFeatures(data),
+    );
   }
   showComparables(buildings: Building[], onSelect: (id: string) => void): void {
     this.comparables.forEach((marker) => marker.remove());

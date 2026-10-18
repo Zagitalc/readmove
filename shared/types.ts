@@ -100,12 +100,3 @@ export type SearchBuilding = Pick<
   Building,
   "id" | "name" | "address" | "kind"
 > & { position: Position };
-export interface Neighbourhood {
-  id: string;
-  name: string;
-  rings: Position[][];
-  population: number;
-  areaKm2: number;
-  geographyType: "illustrative-area" | "OA" | "LSOA";
-  provenance: Provenance;
-}

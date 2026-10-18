@@ -6,6 +6,12 @@ import {
   publishedSalesSchema,
   type PublishedSales,
 } from "../../shared/published-sales";
+import {
+  defaultSoldFilters,
+  filterSummary,
+  sortSales,
+  type SaleSort,
+} from "../property/comparable-sales";
 import { filterSoldPrices } from "../property/sold-prices";
 import {
   locateSales,
@@ -15,7 +21,7 @@ import {
   type SoldFilters,
 } from "../property/located-sales";
 import { escapeHtml as esc, icon } from "./shell";
-import { saleRecord, soldProvenance } from "./sold-price-content";
+import { saleRecord, soldProvenance, saleHistory } from "./sold-price-content";
 export interface SoldMap {
   show: (
     points: LocatedSale[],
@@ -33,14 +39,9 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
   let selected: LocatedSale | undefined;
   let showPoints = false,
     mappableOnly = false;
-  let filters: SoldFilters = {
-    query: "",
-    type: "",
-    category: "A",
-    identifierOnly: false,
-    radius: 1000,
-    since: "",
-  };
+  let filters: SoldFilters = defaultSoldFilters();
+  let discoverySort: SaleSort = "newest",
+    comparisonSort: SaleSort = "distance";
   const close = () => {
     panel.hidden = true;
     open.setAttribute("aria-expanded", "false");
@@ -77,7 +78,7 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
       locations?.identifiers.map((i) => i.transactionId) ?? [],
     );
     frame(`<div class="eyebrow">HM LAND REGISTRY · REAL TRANSACTIONS</div><h2 id="sold-heading" tabindex="-1">${selected ? esc([selected.sale.address.saon, selected.sale.address.paon].filter(Boolean).join(", ")) : "Official sold prices"}</h2>
-      ${selected ? `<button id="sold-back" class="text-link">Back to sold prices</button>${saleRecord(selected.sale, locations, selected, undefined, false)}<p class="fine-note">Selected official UPRN point. Building link unverified.</p><button id="sold-fit" class="primary">Fit nearby sales</button><p class="fine-note">Fits this property and all currently filtered comparable sales. Filters alone do not move the map.</p>` : `<p class="fine-note">${esc(data!.source.scope)}. ${data!.counts.residential.toLocaleString("en-GB")} residential transactions in selected Reading-area postcode districts.</p><p class="sold-scope">Addresses are not yet matched to map buildings. Only official in-bounds OS points are mapped. These records are not valuations or live listings.</p>`}
+      ${selected ? `<button id="sold-back" class="text-link">Back to sold prices</button>${saleRecord(selected.sale, locations, selected, undefined, false)}<p class="fine-note">Selected official UPRN point. Building link unverified.</p>${saleHistory(data!, locations!, selected)}<button id="sold-fit" class="primary">Fit nearby sales</button><p class="fine-note">Fits this property and all currently filtered comparable sales. Filters alone do not move the map.</p>` : `<p class="fine-note">${esc(data!.source.scope)}. ${data!.counts.residential.toLocaleString("en-GB")} residential transactions in selected Reading-area postcode districts.</p><p class="sold-scope">Addresses are not yet matched to map buildings. Only official in-bounds OS points are mapped. These records are not valuations or live listings.</p>`}
       <label class="sold-identifier-filter"><input id="sold-map-points" type="checkbox" ${!locations ? "disabled" : ""} /> Show verified sale points</label>
       <p id="sold-location-status" class="fine-note">${
         locations
@@ -94,6 +95,8 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
       ${selected ? '<p class="fine-note">Nearby sales use straight-line distance and a sparse, partial 2025 history. Same-UPRN transactions are excluded. These are comparison candidates, not a valuation.</p>' : '<p class="fine-note">Category B includes repossessions, identifiable buy-to-lets and transfers to non-private individuals, without identifying which applies. Both categories may be revised or registered late.</p>'}
       <label class="sold-identifier-filter"><input id="sold-identifier-only" type="checkbox" ${!locations || selected ? "disabled" : ""} /> Only with an official UPRN</label>
       <label class="sold-identifier-filter"><input id="sold-mappable-only" type="checkbox" ${!locations || selected ? "disabled" : ""} /> Only with a location inside this map</label>
+      <p id="sold-active-filters" class="fine-note" role="status" aria-live="polite"></p><button id="sold-reset" class="text-link">Reset filters</button><p class="fine-note">Reset restores all types and category A${selected ? ", 1 km and all snapshot dates" : ", with no search or location restrictions"}. Sorting is kept.</p>
+      <div class="comparable-filters"><label>Sort sales<select id="sold-sort">${selected ? '<option value="distance">Nearest first</option>' : ""}<option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label></div>
       ${selected ? "<h3>Nearby comparable sales</h3>" : ""}<p id="sold-count" role="status" aria-live="polite"></p><div id="sold-results"></div><button id="sold-more" class="primary">Show more sales</button>${soldProvenance(data!, locations)}`);
     const el = <T extends HTMLElement>(id: string) =>
       panel.querySelector<T>(`#${id}`)!;
@@ -114,6 +117,8 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
       el<HTMLSelectElement>("sold-radius").value = String(filters.radius);
       el<HTMLInputElement>("sold-since").value = filters.since;
     }
+    const sort = el<HTMLSelectElement>("sold-sort");
+    sort.value = selected ? comparisonSort : discoverySort;
     let limit = 20;
     let mapPoints: LocatedSale[] = [];
     const select = (id: string) => {
@@ -137,7 +142,7 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
             new Date().toISOString().slice(0, 10),
           )
         : undefined;
-      const rows = nearby
+      const filteredRows = nearby
         ? nearby.map((p) => p.sale)
         : filterSoldPrices(
             data!,
@@ -150,6 +155,16 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
               (!mappable.checked || located.has(s.id)),
           );
       const distances = new Map(nearby?.map((p) => [p.sale.id, p.distance]));
+      const rows = sortSales(
+        filteredRows,
+        selected ? comparisonSort : discoverySort,
+        distances,
+      );
+      el("sold-active-filters").textContent = filterSummary(
+        filters,
+        !!selected,
+        mappableOnly,
+      );
       el("sold-count").textContent =
         `${rows.length.toLocaleString("en-GB")} ${selected ? "nearby sales" : "transactions"} · showing ${Math.min(limit, rows.length)}`;
       el("sold-results").innerHTML =
@@ -159,7 +174,7 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
             saleRecord(s, locations, located.get(s.id), distances.get(s.id)),
           )
           .join("") ||
-        `<p>${selected ? "No nearby sales match these filters. Widen the radius or change type, category or date. Fit still shows the selected property." : "No transactions match these filters in this snapshot."}</p>`;
+        `<p>${selected ? "No nearby sales match these filters. Widen the radius or change type, category or date. Fit still shows the selected property. Location coverage is sparse; zero results do not mean no nearby sales occurred." : "No transactions match these filters in this snapshot. Reset filters or try another address; missing records do not mean no sale occurred."}</p>`;
       more.hidden = limit >= rows.length;
       panel
         .querySelectorAll<HTMLButtonElement>("[data-sale]")
@@ -190,6 +205,27 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
     };
     query.oninput = type.onchange = category.onchange = only.onchange = change;
     showMap.onchange = mappable.onchange = change;
+    sort.onchange = () => {
+      if (selected) comparisonSort = sort.value as SaleSort;
+      else discoverySort = sort.value as SaleSort;
+      limit = 20;
+      refresh();
+    };
+    el("sold-reset").onclick = () => {
+      filters = defaultSoldFilters();
+      mappableOnly = false;
+      query.value = "";
+      type.value = "";
+      category.value = "A";
+      only.checked = false;
+      mappable.checked = false;
+      if (selected) {
+        el<HTMLSelectElement>("sold-radius").value = "1000";
+        el<HTMLInputElement>("sold-since").value = "";
+      }
+      limit = 20;
+      refresh();
+    };
     more.onclick = () => {
       limit += 20;
       refresh();

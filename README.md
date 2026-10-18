@@ -28,7 +28,7 @@ Vite serves port 5173. Geography is already bundled. For a production build, run
 - Wider-area search across 49,490 names/addresses; a whole-area overview and visible loading/coverage status.
 - A clearly marked example home with **fictional** transaction history and nearby sample sales. The records are manually associated with real footprints for demonstration; they are not facts about those buildings.
 - A session-only, three-building comparison workflow. No tracking or persistent user profile.
-- Optional illustrative population-density polygons and layer presets. These are **not official LSOAs or Census observations**.
+- An optional official population-density layer: 217 ONS December 2021 LSOAs with Census 2021 usual residents and published density, lazily loaded, plus the containing LSOA in each building panel. Area-level only.
 - Local source/provenance panel, runtime building/transaction validation, unit tests and Playwright flows.
 
 Coverage is `BOUNDS = [-1.08, 51.39, -0.84, 51.50]` in `shared/config.ts`, roughly 200 km². The configured zoom range is 11–19; the opening view is Reading station `[-0.9718, 51.4589]`, zoom 15.5, pitch 58°. Normal exploration constrains the camera to the coverage box; viewport size can limit the effective furthest zoom. Sale fitting temporarily relaxes camera limits to frame points around panels, restoring normal limits on exit; data coverage is unchanged.
@@ -41,11 +41,13 @@ Search the local names or a mapped address, try “Town Hall”, or choose **Exp
 
 **Illustrative:** inferred heights, roof geometry, windows and materials. There is no surveyed terrain or evidence for individual architectural details.
 
-**Fictional development data:** all example sales, example property links, demo population counts and demo neighbourhood boundaries. The UI labels these wherever shown. No official property price or valuation is claimed.
+**Fictional development data:** all example sales and example property links. The UI labels these wherever shown. No official property price or valuation is claimed.
 
 **Official observations:** 6,325 residential Land Registry transactions, 246 exact official UPRN joins and 177 transactions at OS coordinates inside the map. These are separate from fictional examples and have no verified building links.
 
-**Not integrated:** EPC/floor areas, ONS statistics, schools/Ofsted, flood mapping and authorised current listings. Missing records are shown as unavailable. See [data sources](docs/data-sources.md).
+**Official area statistics:** ONS 2021 LSOA boundaries (BGC V5, generalised) and Census 2021 TS001/TS006 values for 21 March 2021. They describe whole areas, never a home or resident.
+
+**Not integrated:** EPC/floor areas, further Census topics, schools/Ofsted, flood mapping and authorised current listings. Missing records are shown as unavailable. See [data sources](docs/data-sources.md).
 
 ## Verify
 
@@ -101,3 +103,18 @@ Reconciled the existing stage-6 coordinate implementation with the expanded look
 ## Reviewed location refresh
 
 `npm run data:refresh -- --manifest config/property-refresh.json --run UNIQUE_NAME` downloads/reuses selected official releases, validates them and writes candidate assets plus a coverage report under ignored `raw/refresh/`. It preserves the published data. See [refresh instructions](docs/data-refresh.md) for offline reuse, release review and PR publication.
+
+## Comparable-sale exploration
+
+Sold prices supports date/price sorting; selecting a mapped sale adds nearest-first
+sorting, an active-filter summary, Reset filters and expandable same-UPRN history.
+History covers only verified matches in the current snapshot. Sorting/reset do
+not move the map; use Fit nearby sales explicitly. See [sold-price behaviour](docs/sold-prices.md).
+
+## Official neighbourhood statistics
+
+`npm run data:neighbourhoods` fetches the 2021 LSOAs intersecting the map box from
+the ONS Open Geography service and Census 2021 TS001/TS006 values from Nomis for
+those exact codes, caches responses with SHA-256 receipts under ignored
+`raw/neighbourhood/`, and writes `public/data/neighbourhoods.v1.json`. Add
+`--offline` to rebuild from the cache. See [data sources](docs/data-sources.md#ons-neighbourhood-statistics-implemented).

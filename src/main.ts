@@ -10,7 +10,14 @@ import {
   findBuilding,
   parseGeography,
 } from "./property/data";
-import { renderComparison, renderDetails, provenanceHtml } from "./ui/details";
+import {
+  renderAreaContext,
+  renderComparison,
+  renderDetails,
+  provenanceHtml,
+} from "./ui/details";
+import { loadNeighbourhoods, neighbourhoodAt } from "./neighbourhood/areas";
+import type { Neighbourhoods } from "../shared/neighbourhoods";
 import { connectSearch } from "./ui/search";
 import { escapeHtml, icon, notice, shell } from "./ui/shell";
 
@@ -118,6 +125,7 @@ async function start(): Promise<void> {
     details.hidden = false;
     comparison.hidden = true;
     intro.hidden = true;
+    fillAreaContext(selected);
     element("#details-close").onclick = () => {
       closePanels();
       element("#search").focus();
@@ -191,6 +199,48 @@ async function start(): Promise<void> {
         : [],
       select,
     );
+  }
+  let neighbourhoods: Neighbourhoods | undefined;
+  function fillAreaContext(building: Building): void {
+    const body = details.querySelector<HTMLElement>("#area-context-body");
+    if (!body) return;
+    const fill = (data: Neighbourhoods) => {
+      body.innerHTML = renderAreaContext({
+        status: "ready",
+        data,
+        area: neighbourhoodAt(centre(building.rings), data),
+      });
+    };
+    if (neighbourhoods) return fill(neighbourhoods);
+    // Only fetch the area asset once someone asks for area context.
+    const section = details.querySelector<HTMLDetailsElement>("#area-context")!;
+    if (!section.open) {
+      section.addEventListener("toggle", () => fillAreaContext(building), {
+        once: true,
+      });
+      return;
+    }
+    loadNeighbourhoods().then(
+      (data) => {
+        neighbourhoods = data;
+        // The panel may have moved on to another building while loading.
+        if (selected === building && body.isConnected) fill(data);
+      },
+      () => {
+        if (body.isConnected)
+          body.innerHTML = renderAreaContext({ status: "error" });
+      },
+    );
+  }
+  async function showAreaLayer(): Promise<void> {
+    try {
+      neighbourhoods ??= await loadNeighbourhoods();
+      controller.showAreas(neighbourhoods);
+    } catch {
+      notice(
+        "Official area statistics could not load. Toggle the layer to retry.",
+      );
+    }
   }
   async function select(id: string, fly = true): Promise<void> {
     const request = ++selectionRequest;
@@ -279,6 +329,7 @@ async function start(): Promise<void> {
     for (const [key, value] of Object.entries(layers))
       element<HTMLInputElement>(`#layer-${key}`).checked = value;
     element("#area-legend").hidden = !layers.neighbourhood;
+    if (layers.neighbourhood) void showAreaLayer();
   }
   element("#layers-button").onclick = () => {
     const panel = element("#layers-panel");
@@ -311,7 +362,7 @@ async function start(): Promise<void> {
           );
         if (layers.neighbourhood)
           notice(
-            "Demonstration layer: fictional areas and population, not official Census data.",
+            "Census 2021 population density by LSOA. Area-level figures, not individual homes.",
           );
       };
     });
@@ -353,10 +404,11 @@ async function start(): Promise<void> {
     `<div class="eyebrow">THE SMALL PRINT, IN PLAIN SIGHT</div><h2>Know what you’re looking at.</h2><p>readmove is an independent property and neighbourhood research prototype. There are no live listings. The Sold prices panel contains real HM Land Registry transactions from the 2025 annual file, separately from the fictional map examples.</p>
     <h3>Real geography</h3><p>${geography.buildingCount.toLocaleString("en-GB")} OpenStreetMap building footprints, roads, water and railways in a bounded greater Reading snapshot. Redistributed from Mini Reading’s ODbL dataset; this is a separate application.</p>${provenanceHtml(geography.provenance)}
     <h3>Illustrative architecture</h3><p>Height uses mapped measurements, mapped storeys, or a deterministic estimate. The panel tells you which. Residential roofs, windows and materials are procedural, not a reconstruction. Flat ground; no surveyed terrain or property boundaries.</p>
-    <h3>Clearly marked fixtures</h3><p>Example sale prices, transaction dates and property links are fictional. Neighbourhood polygons and population figures are also fictional; they are not official LSOAs. No fixture is a statement about a real resident or property.</p>
+    <h3>Clearly marked fixtures</h3><p>Example sale prices, transaction dates and property links are fictional. No fixture is a statement about a real resident or property.</p>
+    <h3>Neighbourhood statistics</h3><p>217 official December 2021 Lower layer Super Output Areas (ONS BGC V5, generalised to 20 m) that intersect the map, with Census 2021 usual residents (TS001) and published population density (TS006) for 21 March 2021. Figures describe whole areas, never an individual home or resident. Boundaries are generalised, so edges are approximate. Source: Office for National Statistics licensed under the Open Government Licence v.3.0. Contains OS data © Crown copyright and database right 2025. <a href="/data/neighbourhoods.v1.json">Sources, editions and checksums ↗</a></p>
     <h3>Official sold prices</h3><p>6,325 residential transactions in selected Reading-area postcode districts. Partial history; postcode coverage is not exact map coverage. No sale is yet linked to a map building. Source file updated 28 September 2026. Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0. <a href="https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data" target="_blank" rel="noopener">Source and address-data terms ↗</a></p>
     <h3>Verified sale points</h3><p>July and August 2026 official HMLR lookups match 246 transactions. OS Open UPRN September 2026 (extracted 14 August 2026) locates all 246; 177 are inside the map bounds. Points do not establish OSM building identity or property boundaries. UPRNs contain OS data © Crown copyright and database rights 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. Licensed under OGL v3.0. <a href="/data/sale-locations.v2.json">Sources, match evidence and checksums ↗</a></p>
-    <h3>Not connected yet</h3><p>Verified building associations, EPCs, ONS Census, schools and Environment Agency flood mapping. School proximity will not imply admission eligibility, and flood polygons will not become unsupported property risk scores.</p>
+    <h3>Not connected yet</h3><p>Verified building associations, EPCs, further Census topics, schools and Environment Agency flood mapping. School proximity will not imply admission eligibility, and flood polygons will not become unsupported property risk scores.</p>
     <p class="fine-note">No tracking, resident profiles, portal scraping or external map requests. Geography: ODbL 1.0. App: MIT. <a href="/data/provenance.json" target="_blank" rel="noopener">Dataset manifest ↗</a></p>`;
   element("#about").onclick = () => dialog.showModal();
   element("#sources-close").onclick = () => dialog.close();
@@ -406,6 +458,10 @@ async function start(): Promise<void> {
             "neighbourhood-fill",
             "visibility",
           ),
+          neighbourhoodAreas: neighbourhoods?.areas.length ?? 0,
+          neighbourhoodRendered: controller.map.queryRenderedFeatures({
+            layers: ["neighbourhood-fill"],
+          }).length,
           footprints: geography.buildingCount,
           tilesLoaded: controller.map.areTilesLoaded(),
           visibleRoadFeatures: controller.map.queryRenderedFeatures({
