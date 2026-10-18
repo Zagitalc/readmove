@@ -1561,3 +1561,63 @@ dialog .provenance {
     font-size: 16px;
   }
 }
+
+.school-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.school-record small {
+  display: block;
+}
+.school-record.selected {
+  background: #f1ede3;
+  box-shadow: -3px 0 0 #9f6136;
+  padding-left: 8px;
+}
+.school-record button {
+  margin-top: 8px;
+  min-height: 44px;
+  font-size: 12px;
+}
+#schools-panel {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#schools-panel[hidden] {
+  display: none;
+}
+#schools-close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+}
+#schools-close svg {
+  width: 19px;
+  height: 19px;
+}
+#schools-query,
+#schools-phase {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+@media (max-width: 700px) {
+  #schools-panel {
+    max-height: min(50dvh, max(140px, calc(100dvh - 490px)));
+  }
+  #schools-query,
+  #schools-phase {
+    font-size: 16px;
+  }
+}

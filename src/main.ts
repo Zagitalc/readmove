@@ -12,6 +12,7 @@ import {
 } from "./property/data";
 import {
   renderAreaContext,
+  renderSchoolsContext,
   renderComparison,
   renderDetails,
   provenanceHtml,
@@ -23,6 +24,9 @@ import { escapeHtml, icon, notice, shell } from "./ui/shell";
 
 import { SalePoints } from "./map/sale-points";
 import { connectSoldPrices } from "./ui/sold-prices";
+import { connectSchools } from "./ui/schools";
+import { loadSchools, nearbySchools } from "./schools/schools";
+import type { Schools } from "../shared/schools";
 
 shell();
 const element = <T extends HTMLElement = HTMLElement>(selector: string) =>
@@ -61,6 +65,7 @@ async function start(): Promise<void> {
   const layers: Layers = {
     buildings: true,
     neighbourhood: false,
+    schools: false,
     labels: true,
   };
   const controller = new MapController(geography, (id) => select(id, false));
@@ -99,19 +104,40 @@ async function start(): Promise<void> {
     intro.hidden = true;
   }, salePoints);
 
-  function closePanels(): void {
+  const schoolsPanel = connectSchools(
+    () => {
+      closePanels(false);
+      intro.hidden = true;
+    },
+    {
+      onSelect: (school) => controller.highlightSchool(school, !!school),
+      onData: (data) => {
+        schools = data;
+        controller.showSchools(data);
+      },
+    },
+  );
+  controller.onSchool = (urn) => {
+    if (!schools) return;
+    layers.schools = true;
+    schoolsPanel.select(urn);
+  };
+
+  function closePanels(restoreIntro = true): void {
+    schoolsPanel.close();
     soldPrices.close();
     selectionRequest++;
     details.removeAttribute("aria-busy");
     details.hidden = true;
     comparison.hidden = true;
-    intro.hidden = false;
+    intro.hidden = !restoreIntro;
     selected = undefined;
     controller.select(undefined);
     controller.showComparables([], select);
   }
   function showDetail(): void {
     if (!selected) return;
+    schoolsPanel.close();
     soldPrices.close();
     details.innerHTML = renderDetails(
       selected,
@@ -126,6 +152,7 @@ async function start(): Promise<void> {
     comparison.hidden = true;
     intro.hidden = true;
     fillAreaContext(selected);
+    fillSchoolsContext(selected);
     element("#details-close").onclick = () => {
       closePanels();
       element("#search").focus();
@@ -201,6 +228,7 @@ async function start(): Promise<void> {
     );
   }
   let neighbourhoods: Neighbourhoods | undefined;
+  let schools: Schools | undefined;
   function fillAreaContext(building: Building): void {
     const body = details.querySelector<HTMLElement>("#area-context-body");
     if (!body) return;
@@ -231,6 +259,37 @@ async function start(): Promise<void> {
           body.innerHTML = renderAreaContext({ status: "error" });
       },
     );
+  }
+  function fillSchoolsContext(building: Building): void {
+    const section =
+      details.querySelector<HTMLDetailsElement>("#schools-context");
+    const body = details.querySelector<HTMLElement>("#schools-context-body");
+    if (!section || !body) return;
+    const fill = (data: Schools) => {
+      body.innerHTML = renderSchoolsContext({
+        status: "ready",
+        data,
+        nearby: nearbySchools(centre(building.rings), data.schools, 1500, 5),
+        radius: 1500,
+      });
+    };
+    const load = () => {
+      if (schools) return fill(schools);
+      body.innerHTML = renderSchoolsContext({ status: "loading" });
+      loadSchools().then(
+        (data) => {
+          schools = data;
+          if (selected === building && body.isConnected) fill(data);
+        },
+        () => {
+          if (body.isConnected)
+            body.innerHTML = renderSchoolsContext({ status: "error" });
+        },
+      );
+    };
+    // The asset is fetched only when someone opens the section.
+    if (section.open) load();
+    else section.addEventListener("toggle", () => section.open && load());
   }
   async function showAreaLayer(): Promise<void> {
     try {
@@ -274,6 +333,7 @@ async function start(): Promise<void> {
     select(demo.buildingId);
   }
   function showComparison(): void {
+    schoolsPanel.close();
     soldPrices.close();
     comparison.innerHTML = renderComparison(
       [...saved].map((id) => savedRecords.get(id)!),
@@ -330,6 +390,15 @@ async function start(): Promise<void> {
       element<HTMLInputElement>(`#layer-${key}`).checked = value;
     element("#area-legend").hidden = !layers.neighbourhood;
     if (layers.neighbourhood) void showAreaLayer();
+    if (layers.schools) void showSchoolLayer();
+  }
+  async function showSchoolLayer(): Promise<void> {
+    try {
+      schools ??= await loadSchools();
+      controller.showSchools(schools);
+    } catch {
+      notice("School locations could not load. Toggle the layer to retry.");
+    }
   }
   element("#layers-button").onclick = () => {
     const panel = element("#layers-panel");
@@ -355,7 +424,10 @@ async function start(): Promise<void> {
           );
         layers.buildings = true;
         layers.neighbourhood = button.dataset.mode === "neighbourhood";
+        layers.schools = button.dataset.mode === "schools";
         applyLayers();
+        if (layers.schools) void schoolsPanel.open();
+        else schoolsPanel.close();
         if (button.dataset.mode === "property")
           notice(
             "Select a building or search a mapped address. Try the example for sample sales.",
@@ -408,7 +480,8 @@ async function start(): Promise<void> {
     <h3>Neighbourhood statistics</h3><p>217 official December 2021 Lower layer Super Output Areas (ONS BGC V5, generalised to 20 m) that intersect the map, with Census 2021 usual residents (TS001) and published population density (TS006) for 21 March 2021. Figures describe whole areas, never an individual home or resident. Boundaries are generalised, so edges are approximate. Source: Office for National Statistics licensed under the Open Government Licence v.3.0. Contains OS data © Crown copyright and database right 2025. <a href="/data/neighbourhoods.v1.json">Sources, editions and checksums ↗</a></p>
     <h3>Official sold prices</h3><p>6,325 residential transactions in selected Reading-area postcode districts. Partial history; postcode coverage is not exact map coverage. No sale is yet linked to a map building. Source file updated 28 September 2026. Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0. <a href="https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data" target="_blank" rel="noopener">Source and address-data terms ↗</a></p>
     <h3>Verified sale points</h3><p>July and August 2026 official HMLR lookups match 246 transactions. OS Open UPRN September 2026 (extracted 14 August 2026) locates all 246; 177 are inside the map bounds. Points do not establish OSM building identity or property boundaries. UPRNs contain OS data © Crown copyright and database rights 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. Licensed under OGL v3.0. <a href="/data/sale-locations.v2.json">Sources, match evidence and checksums ↗</a></p>
-    <h3>Not connected yet</h3><p>Verified building associations, EPCs, further Census topics, schools and Environment Agency flood mapping. School proximity will not imply admission eligibility, and flood polygons will not become unsupported property risk scores.</p>
+    <h3>Schools</h3><p>Open establishments in the map area from the Department for Education’s Get Information about Schools register (extract 18 October 2026), shown at their published locations converted to latitude/longitude (about 5 m). Distances are straight-line, not routes, catchments or admission eligibility. No Ofsted ratings are included. Contains public sector information licensed under the Open Government Licence v3.0. <a href="/data/schools.v1.json">Sources and checksum ↗</a></p>
+    <h3>Not connected yet</h3><p>Verified building associations, EPCs, further Census topics, Ofsted inspection information and Environment Agency flood mapping. Flood polygons will not become unsupported property risk scores.</p>
     <p class="fine-note">No tracking, resident profiles, portal scraping or external map requests. Geography: ODbL 1.0. App: MIT. <a href="/data/provenance.json" target="_blank" rel="noopener">Dataset manifest ↗</a></p>`;
   element("#about").onclick = () => dialog.showModal();
   element("#sources-close").onclick = () => dialog.close();
@@ -458,6 +531,14 @@ async function start(): Promise<void> {
             "neighbourhood-fill",
             "visibility",
           ),
+          schoolsLoaded: schools?.schools.length ?? 0,
+          schoolsVisible: controller.map.getLayoutProperty(
+            "schools-circle",
+            "visibility",
+          ),
+          schoolsRendered: controller.map.queryRenderedFeatures({
+            layers: ["schools-circle"],
+          }).length,
           neighbourhoodAreas: neighbourhoods?.areas.length ?? 0,
           neighbourhoodRendered: controller.map.queryRenderedFeatures({
             layers: ["neighbourhood-fill"],
