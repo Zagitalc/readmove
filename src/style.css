@@ -139,7 +139,7 @@ svg {
 }
 .search-wrap > span {
   height: 20px;
-  color: #718274;
+  color: #657467;
 }
 .search-wrap input {
   width: 100%;
@@ -158,10 +158,10 @@ svg {
   outline: none;
 }
 .search-wrap input::placeholder {
-  color: #758072;
+  color: #697367;
 }
 .search-wrap kbd {
-  color: #88917f;
+  color: #6b7364;
   border: 1px solid #d5dccc;
   border-radius: 3px;
   padding: 1px 5px;
@@ -295,7 +295,7 @@ svg {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #6b7b69;
+  color: #556452;
 }
 .dot {
   display: inline-block;
@@ -357,7 +357,7 @@ p {
 .intro-foot {
   display: block;
   font-size: 9px;
-  color: #7a8174;
+  color: #6b7266;
   margin-top: 11px;
   line-height: 1.6;
 }
@@ -368,7 +368,7 @@ p {
 }
 .map-hint {
   font-size: 10px;
-  color: #75816f;
+  color: #687363;
 }
 .map-controls {
   position: absolute;
@@ -417,7 +417,7 @@ p {
   font-size: 9px;
 }
 .map-controls [aria-pressed="false"] {
-  color: #778473;
+  color: #687364;
 }
 .layers-panel {
   position: absolute;
@@ -477,7 +477,7 @@ p {
 .place-dock > span {
   font-size: 8px;
   letter-spacing: 1.4px;
-  color: #75826c;
+  color: #687460;
 }
 #place-buttons {
   display: flex;
@@ -626,7 +626,7 @@ dialog h2 {
 .detail-tabs button {
   padding: 10px 0;
   font-size: 12px;
-  color: #6a7864;
+  color: #677461;
   position: relative;
 }
 .detail-tabs button[aria-pressed="true"] {
@@ -677,7 +677,7 @@ dialog h2 {
 }
 .fine-note {
   font-size: 10px !important;
-  color: #74806e;
+  color: #687363;
   line-height: 1.65;
   margin: 12px 0;
 }
@@ -738,7 +738,7 @@ summary {
   margin-top: 20px;
   padding-top: 15px;
   font-size: 10px;
-  color: #6b795f;
+  color: #556448;
   line-height: 1.6;
 }
 .provenance .source-label {
@@ -751,13 +751,13 @@ summary {
 .provenance small {
   display: block;
   font-size: 10px;
-  color: #839076;
+  color: #69735e;
   margin-top: 3px;
 }
 .record-id {
   display: block;
   font-size: 9px;
-  color: #89917f;
+  color: #6b7163;
   margin: 12px 0;
   overflow-wrap: anywhere;
 }
@@ -768,7 +768,7 @@ summary {
   padding: 22px 0;
 }
 .empty-state > svg {
-  color: #829c75;
+  color: #617558;
   width: 30px;
   height: 30px;
 }
@@ -976,6 +976,8 @@ dialog .provenance {
   animation: spin 1s linear infinite;
 }
 .notice {
+  /* A transient status toast has no controls; it must never swallow map taps. */
+  pointer-events: none;
   position: absolute;
   z-index: 9;
   bottom: 116px;
