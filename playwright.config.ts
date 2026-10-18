@@ -20,6 +20,19 @@ export default defineConfig({
     },
   },
   projects: [
+    // Opt-in engines: PW_WEBKIT=1 npx playwright test --project=webkit-desktop --project=webkit-iphone
+    ...(process.env.PW_WEBKIT
+      ? [
+          {
+            name: "webkit-desktop",
+            use: {
+              ...devices["Desktop Safari"],
+              viewport: { width: 1440, height: 1000 },
+            },
+          },
+          { name: "webkit-iphone", use: { ...devices["iPhone 15"] } },
+        ]
+      : []),
     {
       name: "desktop",
       use: {

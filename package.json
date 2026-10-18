@@ -23,7 +23,8 @@
     "data:refresh": "tsx scripts/property/refresh.ts",
     "data:neighbourhoods": "tsx scripts/neighbourhood/import.ts",
     "data:schools": "tsx scripts/schools/import.ts",
-    "data:flood": "tsx scripts/flood/import.ts"
+    "data:flood": "tsx scripts/flood/import.ts",
+    "measure": "tsx scripts/measure/perf.ts"
   },
   "dependencies": {
     "csv-parse": "7.0.3",
@@ -32,6 +33,7 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.3",
     "@mapbox/vector-tile": "3.0.0",
     "@playwright/test": "1.63.0",
     "@types/geojson": "7946.0.16",
