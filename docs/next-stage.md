@@ -12,7 +12,7 @@ D. **ONS context:** Stage 9 bundles official 2021 LSOA boundaries with Census 20
 
 E. **Schools:** Stage 10 publishes DfE locations with a searchable panel and nearest-schools context. Next: dated Ofsted inspection information as a separate, explicitly framework-labelled source (no composite score). Proximity does not imply admission eligibility.
 
-F. **Environment:** official Environment Agency area context without unsupported property-specific risk scores.
+F. **Environment:** Stage 11 adds Environment Agency Flood Zones 2 and 3 (rivers and sea) as area context without property-specific risk scores. Next: separately labelled surface-water extents if their licence and scale suit, and climate-change zones as a distinct, dated layer.
 
 G. **Architecture:** improved procedural residential roofs/materials. Selective licensed GLBs later, with distance-based loading and measured budgets.
 
@@ -25,3 +25,5 @@ Stage 8 implements filter summaries/reset, full-result date/price/distance sorti
 Stage 9 replaces the fictional neighbourhood polygons with 217 official ONS 2021 LSOAs and Census 2021 TS001/TS006 values, loaded only on demand. The next recommended stage is E (schools), then F (environment); H (physical-device measurement) remains open.
 
 Stage 10 adds official DfE school locations (151 open establishments, extract 18 October 2026). Next recommended: F (Environment Agency flood-area context), then H (physical-device and Safari/Firefox measurement), with Ofsted inspections following E.
+
+Stage 11 adds Environment Agency flood zones and fixes the nav highlight for Sold prices. Next recommended: H (measured usability: the 3 MB flood asset, 1.6 MB main script, real phones, Safari and Firefox), then dated Ofsted inspection information (E) and more Census topics (D).

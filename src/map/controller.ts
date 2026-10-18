@@ -6,6 +6,8 @@ import type { Neighbourhoods } from "../../shared/neighbourhoods";
 import type { Building, Geography, Position } from "../../shared/types";
 import { areaFeatures } from "../neighbourhood/areas";
 import { schoolFeatures } from "../schools/schools";
+import { floodFeatures } from "../flood/flood";
+import type { Flood } from "../../shared/flood";
 import type { School, Schools } from "../../shared/schools";
 import { BuildingLayer } from "../scene/layer";
 import { mapStyle, buildingFeatures } from "./style";
@@ -16,6 +18,7 @@ export interface Layers {
   buildings: boolean;
   neighbourhood: boolean;
   schools: boolean;
+  flood: boolean;
   labels: boolean;
 }
 export class MapController {
@@ -191,6 +194,12 @@ export class MapController {
         "visibility",
         layers.neighbourhood ? "visible" : "none",
       );
+    for (const id of ["flood-fz2", "flood-fz3"])
+      this.map.setLayoutProperty(
+        id,
+        "visibility",
+        layers.flood ? "visible" : "none",
+      );
     this.map.setLayoutProperty(
       "schools-circle",
       "visibility",
@@ -201,6 +210,11 @@ export class MapController {
   showAreas(data: Neighbourhoods): void {
     (this.map.getSource("areas") as maplibre.GeoJSONSource).setData(
       areaFeatures(data),
+    );
+  }
+  showFlood(data: Flood): void {
+    (this.map.getSource("flood") as maplibre.GeoJSONSource).setData(
+      floodFeatures(data),
     );
   }
   private schools?: Schools;

@@ -27,6 +27,7 @@ export function shell(): void {
       <button data-mode="explore" aria-pressed="true">Explore</button>
       <button data-mode="property" aria-pressed="false">Property</button>
       <button data-mode="neighbourhood" aria-pressed="false">Neighbourhood</button>
+      <button data-mode="flood" aria-pressed="false">Flood</button>
       <button id="schools-open" data-mode="schools" aria-pressed="false" aria-expanded="false" aria-controls="schools-panel">Schools</button>
       <button id="sold-open" aria-expanded="false" aria-controls="official-sales">Sold prices</button>
     </nav>
@@ -56,10 +57,12 @@ export function shell(): void {
       <label>3D buildings<input type="checkbox" id="layer-buildings" checked /></label>
       <label>Place labels<input type="checkbox" id="layer-labels" checked /></label>
       <label>Population density <span class="tiny-tag">CENSUS 2021</span><input type="checkbox" id="layer-neighbourhood" /></label>
+      <label>Flood zones <span class="tiny-tag">EA</span><input type="checkbox" id="layer-flood" /></label>
       <label>Schools <span class="tiny-tag">DfE</span><input type="checkbox" id="layer-schools" /></label>
-      <p>Official ONS 2021 LSOAs. Area-level figures only. Schools are DfE locations, not catchments.</p>
+      <p>Official ONS 2021 LSOAs. Area-level figures only. Flood zones are a planning designation, not a property risk. Schools are DfE locations, not catchments.</p>
     </section>
     <div id="area-legend" class="area-legend" hidden><strong>Usual residents per km²</strong><ol class="density-scale">${DENSITY_COLOURS.map((colour, i) => `<li><i style="background:${colour}"></i>${i === 0 ? `Under ${DENSITY_BREAKS[0].toLocaleString("en-GB")}` : i === DENSITY_BREAKS.length ? `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}+` : `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}–${(DENSITY_BREAKS[i] - 1).toLocaleString("en-GB")}`}</li>`).join("")}</ol><small>Census 2021 · ONS LSOA areas · not individual homes</small></div>
+    <div id="flood-legend" class="area-legend" hidden><strong>Rivers and sea flood zones</strong><ol class="density-scale"><li><i style="background:#2f6f9f"></i>Flood Zone 3 · 1 in 100+ rivers, 1 in 200+ sea</li><li><i style="background:#8fb9d6"></i>Flood Zone 2 · down to 1 in 1,000</li></ol><small>Environment Agency · present day · ignores defences · a planning designation, not a property risk</small></div>
     <div class="place-dock" aria-label="Explore local places"><span>TAKE A LOOK AROUND</span><div id="place-buttons"></div></div>
     <div class="stream-status"><span id="detail-status" role="status">Loading nearby building detail…</span><button id="retry-detail" hidden>Retry detail</button></div>
     <footer class="map-footer"><span class="dot"></span><span id="geography-status">Loading local geography…</span><button id="about">Sources &amp; notes ↗</button></footer>

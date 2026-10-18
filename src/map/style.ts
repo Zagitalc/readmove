@@ -2,6 +2,7 @@ import type { FeatureCollection } from "geojson";
 import type { StyleSpecification } from "maplibre-gl";
 import type { Building, Geography } from "../../shared/types";
 import { schoolFeatures } from "../schools/schools";
+import { FLOOD_COLOURS, floodFeatures } from "../flood/flood";
 import {
   areaFeatures,
   DENSITY_BREAKS,
@@ -61,6 +62,12 @@ export function mapStyle(geography: Geography): StyleSpecification {
         data: areaFeatures(),
         attribution:
           'Source: <a href="https://www.ons.gov.uk/methodology/geography/licences" target="_blank" rel="noopener">ONS</a> · OGL v3.0 · Contains OS data © Crown copyright 2025',
+      },
+      flood: {
+        type: "geojson",
+        data: floodFeatures(),
+        attribution:
+          '© <a href="https://environment.data.gov.uk/explore/04532375-a198-476e-985e-0579a0a11b47" target="_blank" rel="noopener">Environment Agency</a> · OGL',
       },
       schools: {
         type: "geojson",
@@ -137,6 +144,17 @@ export function mapStyle(geography: Geography): StyleSpecification {
           "line-opacity": 0.7,
         },
       },
+      ...(["FZ2", "FZ3"] as const).map((zone) => ({
+        id: `flood-${zone.toLowerCase()}`,
+        type: "fill" as const,
+        source: "flood",
+        filter: ["==", ["get", "zone"], zone] as never,
+        layout: { visibility: "none" as const },
+        paint: {
+          "fill-color": FLOOD_COLOURS[zone],
+          "fill-opacity": zone === "FZ3" ? 0.55 : 0.45,
+        },
+      })),
       {
         id: "road-edge",
         type: "line",

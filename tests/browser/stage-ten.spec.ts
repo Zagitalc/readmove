@@ -78,3 +78,19 @@ test("schools load on demand, filter, highlight and appear in building context",
   ).toBeVisible();
   await page.screenshot({ path: info.outputPath("stage-ten-context.png") });
 });
+
+test("the nav highlights only the open panel", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#map")).toHaveAttribute("data-ready", "true");
+  const pressed = (name: string) =>
+    page.getByRole("button", { name, exact: true });
+  await pressed("Schools").click();
+  await expect(pressed("Schools")).toHaveAttribute("aria-pressed", "true");
+  await pressed("Sold prices").click();
+  await expect(pressed("Sold prices")).toHaveAttribute("aria-pressed", "true");
+  await expect(pressed("Schools")).toHaveAttribute("aria-pressed", "false");
+  await expect(pressed("Explore")).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Close sold prices" }).click();
+  await expect(pressed("Sold prices")).toHaveAttribute("aria-pressed", "false");
+  await expect(pressed("Explore")).toHaveAttribute("aria-pressed", "true");
+});
