@@ -28,6 +28,7 @@ Vite serves port 5173. Geography is already bundled. For a production build, run
 - Wider-area search across 49,490 names/addresses; a whole-area overview and visible loading/coverage status.
 - A clearly marked example home with **fictional** transaction history and nearby sample sales. The records are manually associated with real footprints for demonstration; they are not facts about those buildings.
 - A session-only, three-building comparison workflow. No tracking or persistent user profile.
+- A Schools mode/layer with a searchable list, phase filter and, in each building panel, the five nearest open schools by straight-line distance, all loaded only on demand.
 - An optional official population-density layer: 217 ONS December 2021 LSOAs with Census 2021 usual residents and published density, lazily loaded, plus the containing LSOA in each building panel. Area-level only.
 - Local source/provenance panel, runtime building/transaction validation, unit tests and Playwright flows.
 
@@ -47,7 +48,9 @@ Search the local names or a mapped address, try “Town Hall”, or choose **Exp
 
 **Official area statistics:** ONS 2021 LSOA boundaries (BGC V5, generalised) and Census 2021 TS001/TS006 values for 21 March 2021. They describe whole areas, never a home or resident.
 
-**Not integrated:** EPC/floor areas, further Census topics, schools/Ofsted, flood mapping and authorised current listings. Missing records are shown as unavailable. See [data sources](docs/data-sources.md).
+**Official schools:** 151 open DfE Get Information about Schools establishments in the map box (extract 18 October 2026), at their published locations. Distances are straight-line; there are no catchments, admission claims or inspection ratings.
+
+**Not integrated:** EPC/floor areas, further Census topics, Ofsted inspections, flood mapping and authorised current listings. Missing records are shown as unavailable. See [data sources](docs/data-sources.md).
 
 ## Verify
 
@@ -118,3 +121,7 @@ the ONS Open Geography service and Census 2021 TS001/TS006 values from Nomis for
 those exact codes, caches responses with SHA-256 receipts under ignored
 `raw/neighbourhood/`, and writes `public/data/neighbourhoods.v1.json`. Add
 `--offline` to rebuild from the cache. See [data sources](docs/data-sources.md#ons-neighbourhood-statistics-implemented).
+
+## Official schools
+
+`npm run data:schools -- --date YYYYMMDD` downloads (or reuses) the DfE GIAS all-establishment CSV for that extract date, caches it with a SHA-256 receipt under ignored `raw/schools/`, and writes `public/data/schools.v1.json`. `--offline` rebuilds from the cache. See [data sources](docs/data-sources.md#schools-implemented).

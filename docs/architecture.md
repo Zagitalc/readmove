@@ -2,18 +2,20 @@
 
 ## Module boundaries
 
-| Location                 | Responsibility                                                                      |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `shared/config.ts`       | Region name, bounds, origin and initial camera                                      |
-| `shared/types.ts`        | Data contracts and runtime validation                                               |
-| `shared/geo.ts`          | Bounds, geographic distances and polygon matching with holes                        |
-| `shared/integrations.ts` | Future identifier, school and flood-source contracts                                |
-| `src/map`                | MapLibre style, camera, hit testing, layer visibility, local labels                 |
-| `src/scene`              | Independent procedural geometry, Three.js shared-context rendering, selection       |
-| `src/property`           | Property/transaction validation, local identity lookup, sample comparable selection |
-| `src/neighbourhood`      | Lazy official LSOA asset loading, density classes and area lookup                   |
-| `src/ui`                 | Shell, escaped source rendering, detail/comparison panels and keyboard search       |
-| `scripts/geography`      | Pinned ODbL subset import and provenance hashes                                     |
+| Location                             | Responsibility                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `shared/config.ts`                   | Region name, bounds, origin and initial camera                                      |
+| `shared/types.ts`                    | Data contracts and runtime validation                                               |
+| `shared/geo.ts`                      | Bounds, geographic distances and polygon matching with holes                        |
+| `shared/integrations.ts`             | Future identifier and flood-source contracts                                        |
+| `shared/schools.ts`, `shared/bng.ts` | School asset contract; British National Grid → WGS84 conversion                     |
+| `src/map`                            | MapLibre style, camera, hit testing, layer visibility, local labels                 |
+| `src/scene`                          | Independent procedural geometry, Three.js shared-context rendering, selection       |
+| `src/property`                       | Property/transaction validation, local identity lookup, sample comparable selection |
+| `src/neighbourhood`                  | Lazy official LSOA asset loading, density classes and area lookup                   |
+| `src/schools`                        | Lazy DfE school asset loading, filtering and straight-line nearest-school search    |
+| `src/ui`                             | Shell, escaped source rendering, detail/comparison panels and keyboard search       |
+| `scripts/geography`                  | Pinned ODbL subset import and provenance hashes                                     |
 
 No server or database is necessary for this milestone. Vite serves locally; Workers Static Assets serves the production build. No third-party data requests occur during ordinary exploration. The lockfile pins dependencies.
 
@@ -45,7 +47,7 @@ Point-in-polygon matching includes outer boundaries, excludes holes and returns 
 
 ## State and UX
 
-Selection, map layers, the example workflow and up to three comparison IDs stay in memory. No cookies, analytics or storage are used. Search indexes only bundled names/addresses/IDs. Modes are layer presets; toggles override them. Neighbourhood mode now shows official ONS data. Schools and Environment modes are not shown until data exists.
+Selection, map layers, the example workflow and up to three comparison IDs stay in memory. No cookies, analytics or storage are used. Search indexes only bundled names/addresses/IDs. Modes are layer presets; toggles override them. Neighbourhood mode shows official ONS data and Schools mode shows official DfE locations. An Environment mode is not shown until data exists.
 
 Mobile detail panels occupy at most 53% of the viewport and scroll internally; close controls restore the map. Search supports arrow keys, Enter and Escape. A native dialog handles source notes and focus containment. A read-only test hook exists only in Vite development builds. Browser tests exercise real map rendering and selection, not a replacement mock map.
 
@@ -73,3 +75,7 @@ The sold-price panel has a fixed toolbar and an independently scrolling body. Se
 ## Integration with stage-6
 
 Reconciled the existing stage-6 coordinate implementation with the expanded lookup and browser-flow work. The original 100-coordinate audit and extractor, coordinate validation and map attribution are retained. The app uses one current renderer/schema path, with optional map points (off by default), an in-map-only filter, grouped co-located sales, exact date filtering, query clearing and explicit fit. The original relative transaction-age selector is superseded by the explicit “Sold on or after” date filter. Earlier verification above describes the pre-merge work; merge-specific checks are recorded in the handoff.
+
+## Schools
+
+`schools.v1.json` (40 kB) is fetched once, only when the Schools mode/layer is used or a building panel's Nearby schools section is opened; a failed load is retried on the next request. A MapLibre circle layer draws the points and the side panel provides the keyboard- and screen-reader-accessible list (name/postcode/URN search, phase filter, explicit Show on map). Filtering never moves the camera. The building panel lists the five nearest schools within 1.5 km from the footprint centre by great-circle distance. The UI repeats that distance is not a route, catchment or admission eligibility and shows no inspection rating.

@@ -10,7 +10,7 @@ C. **Exact property matches:** legitimate free identifier sources, retaining unr
 
 D. **ONS context:** Stage 9 bundles official 2021 LSOA boundaries with Census 2021 usual residents and published density, recording editions, dates and denominators. Next: further Census topics (age, tenure, households, car access) with explicit denominators, and an area-level panel when the map is clicked outside a building.
 
-E. **Schools:** DfE locations and dated inspection information. Proximity does not imply admission eligibility.
+E. **Schools:** Stage 10 publishes DfE locations with a searchable panel and nearest-schools context. Next: dated Ofsted inspection information as a separate, explicitly framework-labelled source (no composite score). Proximity does not imply admission eligibility.
 
 F. **Environment:** official Environment Agency area context without unsupported property-specific risk scores.
 
@@ -23,3 +23,5 @@ No property-portal scraping, paid services, tracking, resident profiles or crime
 Stage 8 implements filter summaries/reset, full-result date/price/distance sorting and exact-UPRN snapshot history within the existing sold-price panel. Broader history still depends on additional reviewed official data; measured mobile performance remains a future stage.
 
 Stage 9 replaces the fictional neighbourhood polygons with 217 official ONS 2021 LSOAs and Census 2021 TS001/TS006 values, loaded only on demand. The next recommended stage is E (schools), then F (environment); H (physical-device measurement) remains open.
+
+Stage 10 adds official DfE school locations (151 open establishments, extract 18 October 2026). Next recommended: F (Environment Agency flood-area context), then H (physical-device and Safari/Firefox measurement), with Ofsted inspections following E.
