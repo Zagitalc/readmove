@@ -27,6 +27,7 @@ export function shell(): void {
       <button data-mode="explore" aria-pressed="true">Explore</button>
       <button data-mode="property" aria-pressed="false">Property</button>
       <button data-mode="neighbourhood" aria-pressed="false">Neighbourhood</button>
+      <button id="schools-open" data-mode="schools" aria-pressed="false" aria-expanded="false" aria-controls="schools-panel">Schools</button>
       <button id="sold-open" aria-expanded="false" aria-controls="official-sales">Sold prices</button>
     </nav>
     <aside id="intro" class="intro">
@@ -40,6 +41,7 @@ export function shell(): void {
     </aside>
     <section id="details" class="details" aria-label="Building details" hidden></section>
     <section id="official-sales" class="details" aria-label="Official sold prices" hidden></section>
+    <section id="schools-panel" class="details" aria-label="Schools" hidden></section>
     <section id="comparison" class="details" aria-label="Saved building comparison" hidden></section>
     <div class="map-controls">
       <button id="layers-button" aria-label="Map layers" aria-expanded="false" aria-controls="layers-panel">${icon("layers")}</button>
@@ -54,7 +56,8 @@ export function shell(): void {
       <label>3D buildings<input type="checkbox" id="layer-buildings" checked /></label>
       <label>Place labels<input type="checkbox" id="layer-labels" checked /></label>
       <label>Population density <span class="tiny-tag">CENSUS 2021</span><input type="checkbox" id="layer-neighbourhood" /></label>
-      <p>Official ONS 2021 LSOAs. Area-level figures only.</p>
+      <label>Schools <span class="tiny-tag">DfE</span><input type="checkbox" id="layer-schools" /></label>
+      <p>Official ONS 2021 LSOAs. Area-level figures only. Schools are DfE locations, not catchments.</p>
     </section>
     <div id="area-legend" class="area-legend" hidden><strong>Usual residents per km²</strong><ol class="density-scale">${DENSITY_COLOURS.map((colour, i) => `<li><i style="background:${colour}"></i>${i === 0 ? `Under ${DENSITY_BREAKS[0].toLocaleString("en-GB")}` : i === DENSITY_BREAKS.length ? `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}+` : `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}–${(DENSITY_BREAKS[i] - 1).toLocaleString("en-GB")}`}</li>`).join("")}</ol><small>Census 2021 · ONS LSOA areas · not individual homes</small></div>
     <div class="place-dock" aria-label="Explore local places"><span>TAKE A LOOK AROUND</span><div id="place-buttons"></div></div>

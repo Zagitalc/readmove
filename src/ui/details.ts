@@ -1,5 +1,7 @@
 import { distanceMetres } from "../../shared/geo";
 import type { Lsoa, Neighbourhoods } from "../../shared/neighbourhoods";
+import type { School, Schools } from "../../shared/schools";
+import { schoolProvenance, schoolRow } from "./schools";
 import type { Building, Geography, Provenance } from "../../shared/types";
 import {
   buildingTitle,
@@ -79,6 +81,7 @@ export function renderDetails(
       <dl class="facts"><div><dt>Address</dt><dd>${e(building.address ?? "Not available")}</dd></div><div><dt>UPRN</dt><dd>Not linked</dd></div><div><dt>EPC / floor area</dt><dd>Not connected</dd></div><div><dt>Price per m²</dt><dd>Not available</dd></div></dl>
       <p class="fine-note">One building can contain several homes. A footprint is not a legal property boundary.</p>
       <details class="area-context" id="area-context"><summary>Neighbourhood statistics <span class="tiny-tag">ONS</span></summary><div id="area-context-body" aria-live="polite">${renderAreaContext({ status: "loading" })}</div></details>
+      <details class="area-context" id="schools-context"><summary>Nearby schools <span class="tiny-tag">DfE</span></summary><div id="schools-context-body" aria-live="polite"><p>Open to list the nearest official school locations.</p></div></details>
       ${provenanceHtml(geography.provenance)}
       <span class="record-id">Footprint reference: ${e(building.id)}</span>
     `
@@ -109,6 +112,29 @@ export function renderDetails(
     }
     <button id="save-building" class="secondary full">${saved ? "Remove from comparison" : "Add building to comparison"} ${icon("arrow")}</button>
   `;
+}
+
+export type SchoolsState =
+  | { status: "loading" }
+  | { status: "error" }
+  | {
+      status: "ready";
+      data: Schools;
+      nearby: { school: School; metres: number }[];
+      radius: number;
+    };
+/** Straight-line distance from a footprint centre; not a route, catchment or admission rule. */
+export function renderSchoolsContext(state: SchoolsState): string {
+  if (state.status === "loading")
+    return "<p>Loading official school locations…</p>";
+  if (state.status === "error")
+    return "<p>School locations could not load. Close and reopen this section to retry.</p>";
+  const { nearby, radius, data } = state;
+  return `${
+    nearby.length
+      ? `<ol class="school-list">${nearby.map(({ school, metres }) => `<li class="school-record">${schoolRow(school, metres)}</li>`).join("")}</ol>`
+      : `<p>No open schools are listed within ${(radius / 1000).toLocaleString("en-GB")} km. Establishments without a published location are not shown.</p>`
+  }<p>Straight-line distance from the footprint centre, not a walking route. Nearby does not mean a child can attend: admissions, catchments and places are set by each school and local authority. No inspection ratings are shown.</p>${schoolProvenance(data)}`;
 }
 
 export type AreaState =

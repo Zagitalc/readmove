@@ -5,6 +5,8 @@ import { centre } from "../../shared/geo";
 import type { Neighbourhoods } from "../../shared/neighbourhoods";
 import type { Building, Geography, Position } from "../../shared/types";
 import { areaFeatures } from "../neighbourhood/areas";
+import { schoolFeatures } from "../schools/schools";
+import type { School, Schools } from "../../shared/schools";
 import { BuildingLayer } from "../scene/layer";
 import { mapStyle, buildingFeatures } from "./style";
 import { BuildingRepository } from "./repository";
@@ -13,6 +15,7 @@ maplibre.setWorkerUrl(workerUrl);
 export interface Layers {
   buildings: boolean;
   neighbourhood: boolean;
+  schools: boolean;
   labels: boolean;
 }
 export class MapController {
@@ -22,6 +25,7 @@ export class MapController {
   private labels: maplibre.Marker[] = [];
   private comparables: maplibre.Marker[] = [];
   private selected?: string;
+  onSchool?: (urn: string) => void;
 
   constructor(
     private geography: Geography,
@@ -83,6 +87,22 @@ export class MapController {
       }
     });
     this.map.on("click", (event) => {
+      if (
+        this.map.getLayoutProperty("schools-circle", "visibility") === "visible"
+      ) {
+        const { x, y } = event.point;
+        const school = this.map.queryRenderedFeatures(
+          [
+            [x - 8, y - 8],
+            [x + 8, y + 8],
+          ],
+          { layers: ["schools-circle"] },
+        )[0]?.properties.urn;
+        if (typeof school === "string" && this.onSchool) {
+          this.onSchool(school);
+          return;
+        }
+      }
       const id =
         this.scene.pick(event.point.x, event.point.y) ??
         this.map.queryRenderedFeatures(event.point, {
@@ -171,12 +191,38 @@ export class MapController {
         "visibility",
         layers.neighbourhood ? "visible" : "none",
       );
+    this.map.setLayoutProperty(
+      "schools-circle",
+      "visibility",
+      layers.schools ? "visible" : "none",
+    );
     for (const label of this.labels) label.getElement().hidden = !layers.labels;
   }
   showAreas(data: Neighbourhoods): void {
     (this.map.getSource("areas") as maplibre.GeoJSONSource).setData(
       areaFeatures(data),
     );
+  }
+  private schools?: Schools;
+  showSchools(data: Schools, selected?: string): void {
+    this.schools = data;
+    (this.map.getSource("schools") as maplibre.GeoJSONSource).setData(
+      schoolFeatures(data.schools, selected),
+    );
+  }
+  /** Highlight one school; moving the camera is explicit, never a side effect of filtering. */
+  highlightSchool(school: School | undefined, fly = false): void {
+    if (this.schools) this.showSchools(this.schools, school?.urn);
+    if (school && fly)
+      this.map.flyTo({
+        center: school.position,
+        zoom: Math.max(this.map.getZoom(), 15.5),
+        // Keep the school in the free map area beside (desktop) or above (phone) the panel.
+        offset: matchMedia("(max-width: 700px)").matches
+          ? [0, -Math.round(innerHeight * 0.22)]
+          : [Math.round(innerWidth > 850 ? 170 : 0), 0],
+        duration: this.duration(),
+      });
   }
   showComparables(buildings: Building[], onSelect: (id: string) => void): void {
     this.comparables.forEach((marker) => marker.remove());

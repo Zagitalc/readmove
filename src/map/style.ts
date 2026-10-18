@@ -1,6 +1,7 @@
 import type { FeatureCollection } from "geojson";
 import type { StyleSpecification } from "maplibre-gl";
 import type { Building, Geography } from "../../shared/types";
+import { schoolFeatures } from "../schools/schools";
 import {
   areaFeatures,
   DENSITY_BREAKS,
@@ -60,6 +61,12 @@ export function mapStyle(geography: Geography): StyleSpecification {
         data: areaFeatures(),
         attribution:
           'Source: <a href="https://www.ons.gov.uk/methodology/geography/licences" target="_blank" rel="noopener">ONS</a> · OGL v3.0 · Contains OS data © Crown copyright 2025',
+      },
+      schools: {
+        type: "geojson",
+        data: schoolFeatures(),
+        attribution:
+          'Schools: <a href="https://get-information-schools.service.gov.uk/" target="_blank" rel="noopener">DfE GIAS</a> · OGL v3.0',
       },
     },
     layers: [
@@ -179,6 +186,31 @@ export function mapStyle(geography: Geography): StyleSpecification {
           "fill-extrusion-height": ["get", "height"],
           "fill-extrusion-base": ["coalesce", ["get", "minHeight"], 0],
           "fill-extrusion-opacity": 1,
+        },
+      },
+      {
+        id: "schools-circle",
+        type: "circle",
+        source: "schools",
+        layout: { visibility: "none" },
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            11,
+            3.5,
+            16,
+            7,
+          ],
+          "circle-color": [
+            "case",
+            ["==", ["get", "selected"], 1],
+            "#9f6136",
+            "#2c5f8a",
+          ],
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 1.5,
         },
       },
       {

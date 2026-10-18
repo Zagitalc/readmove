@@ -1,4 +1,12 @@
-# Local handoff — 17 October 2026
+# Local handoff — 18 October 2026
+
+## Stage 10: official schools
+
+Stage 9 was merged to `main` and deployed; this work is uncommitted on the local `stage-8` checkout. `npm run data:schools -- --date 20261018` builds `public/data/schools.v1.json` (40 kB, 151 open DfE establishments) from the GIAS full CSV, with receipt/checksum caching under ignored `raw/schools/`, BNG→WGS84 conversion and byte-identical offline rebuilds. New **Schools** mode and layer: blue circle markers, a clickable-marker/keyboard list panel with search, phase filter, Show on map, official record and website links; and a Nearby schools section (five nearest within 1.5 km, straight-line) in each building panel. Nothing loads until used. No ratings, catchments or admission claims.
+
+Verification: 70 TypeScript tests, 3 Python tests and the build pass; all 38 desktop/mobile Playwright cases pass (installed Chrome), including the new Stage 10 case. Screenshots are under ignored `raw/stage-10-browser/`. Physical devices and other engines were not tested.
+
+Try Schools mode, search "rg1 5lw" and Show on map (Reading School), or open a building and expand Nearby schools. No commit, push or deployment was performed.
 
 ## Stage 9: official ONS neighbourhood context
 
@@ -9,7 +17,6 @@ Verification: 62 TypeScript tests, 3 Python tests and production build pass. All
 Try Neighbourhood mode, then search “Town Hall” and open Neighbourhood statistics: Reading 019B, E01033415, 2,169 usual residents, 2,814 per km².
 
 No commit, push or deployment was performed. Earlier sections below describe previous stages.
-
 
 ## Stage 8: comparable exploration
 
