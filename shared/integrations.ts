@@ -1,22 +1,7 @@
 import type { MultiPolygon, Polygon } from "geojson";
 import type { Position, Provenance } from "./types";
 
-/** Future datasets must carry their own dates, licences and geographic scale. */
-export interface SchoolRecord {
-  urn: string;
-  name: string;
-  position: Position;
-  phase: "primary" | "secondary" | "all-through" | "other";
-  ageRange: [number, number];
-  status: string;
-  inspection?: {
-    inspectedOn: string;
-    publishedOn: string;
-    findingsUrl: string;
-    framework: string;
-  };
-  provenance: Provenance;
-}
+/** Future datasets must carry their own dates, licences and geographic scale. Schools: see shared/schools.ts. */
 export interface FloodArea {
   id: string;
   geometry: Polygon | MultiPolygon;
