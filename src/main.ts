@@ -12,6 +12,7 @@ import {
 } from "./property/data";
 import {
   renderAreaContext,
+  renderFloodContext,
   renderSchoolsContext,
   renderComparison,
   renderDetails,
@@ -26,6 +27,8 @@ import { SalePoints } from "./map/sale-points";
 import { connectSoldPrices } from "./ui/sold-prices";
 import { connectSchools } from "./ui/schools";
 import { loadSchools, nearbySchools } from "./schools/schools";
+import { loadFlood } from "./flood/flood";
+import { footprintFlood, type Flood } from "../shared/flood";
 import type { Schools } from "../shared/schools";
 
 shell();
@@ -66,6 +69,7 @@ async function start(): Promise<void> {
     buildings: true,
     neighbourhood: false,
     schools: false,
+    flood: false,
     labels: true,
   };
   const controller = new MapController(geography, (id) => select(id, false));
@@ -153,6 +157,7 @@ async function start(): Promise<void> {
     intro.hidden = true;
     fillAreaContext(selected);
     fillSchoolsContext(selected);
+    fillFloodContext(selected);
     element("#details-close").onclick = () => {
       closePanels();
       element("#search").focus();
@@ -229,6 +234,7 @@ async function start(): Promise<void> {
   }
   let neighbourhoods: Neighbourhoods | undefined;
   let schools: Schools | undefined;
+  let flood: Flood | undefined;
   function fillAreaContext(building: Building): void {
     const body = details.querySelector<HTMLElement>("#area-context-body");
     if (!body) return;
@@ -288,6 +294,39 @@ async function start(): Promise<void> {
       );
     };
     // The asset is fetched only when someone opens the section.
+    if (section.open) load();
+    else section.addEventListener("toggle", () => section.open && load());
+  }
+  function fillFloodContext(building: Building): void {
+    const section = details.querySelector<HTMLDetailsElement>("#flood-context");
+    const body = details.querySelector<HTMLElement>("#flood-context-body");
+    if (!section || !body) return;
+    const fill = (data: Flood) => {
+      body.innerHTML = renderFloodContext({
+        status: "ready",
+        data,
+        result: footprintFlood(
+          centre(building.rings),
+          building.rings[0],
+          data.areas,
+        ),
+      });
+    };
+    const load = () => {
+      if (flood) return fill(flood);
+      body.innerHTML = renderFloodContext({ status: "loading" });
+      loadFlood().then(
+        (data) => {
+          flood = data;
+          if (selected === building && body.isConnected) fill(data);
+        },
+        () => {
+          if (body.isConnected)
+            body.innerHTML = renderFloodContext({ status: "error" });
+        },
+      );
+    };
+    // The 3 MB asset is fetched only when someone opens the section.
     if (section.open) load();
     else section.addEventListener("toggle", () => section.open && load());
   }
@@ -391,6 +430,16 @@ async function start(): Promise<void> {
     element("#area-legend").hidden = !layers.neighbourhood;
     if (layers.neighbourhood) void showAreaLayer();
     if (layers.schools) void showSchoolLayer();
+    element("#flood-legend").hidden = !layers.flood;
+    if (layers.flood) void showFloodLayer();
+  }
+  async function showFloodLayer(): Promise<void> {
+    try {
+      flood ??= await loadFlood();
+      controller.showFlood(flood);
+    } catch {
+      notice("Flood zones could not load. Toggle the layer to retry.");
+    }
   }
   async function showSchoolLayer(): Promise<void> {
     try {
@@ -413,31 +462,61 @@ async function start(): Promise<void> {
       layers[key] = (event.target as HTMLInputElement).checked;
       applyLayers();
     };
-  document
-    .querySelectorAll<HTMLButtonElement>("[data-mode]")
-    .forEach((button) => {
-      button.onclick = () => {
-        document
-          .querySelectorAll("[data-mode]")
-          .forEach((el) =>
-            el.setAttribute("aria-pressed", String(el === button)),
-          );
-        layers.buildings = true;
-        layers.neighbourhood = button.dataset.mode === "neighbourhood";
-        layers.schools = button.dataset.mode === "schools";
-        applyLayers();
-        if (layers.schools) void schoolsPanel.open();
-        else schoolsPanel.close();
-        if (button.dataset.mode === "property")
-          notice(
-            "Select a building or search a mapped address. Try the example for sample sales.",
-          );
-        if (layers.neighbourhood)
-          notice(
-            "Census 2021 population density by LSOA. Area-level figures, not individual homes.",
-          );
-      };
-    });
+  // The highlighted nav item follows what is actually open: Sold prices or Schools
+  // while their panels are open, otherwise the last chosen map mode.
+  let baseMode = "explore";
+  const modeButtons =
+    document.querySelectorAll<HTMLButtonElement>("[data-mode]");
+  const soldButton = element<HTMLButtonElement>("#sold-open");
+  const schoolsButton = element<HTMLButtonElement>("#schools-open");
+  const isOpenButton = (button: HTMLElement) =>
+    button.getAttribute("aria-expanded") === "true";
+  function syncNav(): void {
+    const sold = isOpenButton(soldButton);
+    const active = sold
+      ? "sold"
+      : isOpenButton(schoolsButton)
+        ? "schools"
+        : baseMode;
+    modeButtons.forEach((button) =>
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.mode === active),
+      ),
+    );
+    soldButton.setAttribute("aria-pressed", String(sold));
+  }
+  new MutationObserver(syncNav).observe(soldButton, {
+    attributes: true,
+    attributeFilter: ["aria-expanded"],
+  });
+  new MutationObserver(syncNav).observe(schoolsButton, {
+    attributes: true,
+    attributeFilter: ["aria-expanded"],
+  });
+  modeButtons.forEach((button) => {
+    button.onclick = () => {
+      const mode = button.dataset.mode!;
+      if (mode !== "schools") baseMode = mode;
+      layers.buildings = true;
+      layers.neighbourhood = mode === "neighbourhood";
+      layers.schools = mode === "schools";
+      layers.flood = mode === "flood";
+      applyLayers();
+      if (layers.schools) void schoolsPanel.open();
+      else schoolsPanel.close();
+      syncNav();
+      if (mode === "property")
+        notice(
+          "Select a building or search a mapped address. Try the example for sample sales.",
+        );
+      if (layers.neighbourhood)
+        notice(
+          "Census 2021 population density by LSOA. Area-level figures, not individual homes.",
+        );
+    };
+  });
+  syncNav();
   element("#zoom-in").onclick = () => controller.map.zoomIn();
   element("#zoom-out").onclick = () => controller.map.zoomOut();
   const duration = () =>
@@ -481,7 +560,8 @@ async function start(): Promise<void> {
     <h3>Official sold prices</h3><p>6,325 residential transactions in selected Reading-area postcode districts. Partial history; postcode coverage is not exact map coverage. No sale is yet linked to a map building. Source file updated 28 September 2026. Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0. <a href="https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data" target="_blank" rel="noopener">Source and address-data terms ↗</a></p>
     <h3>Verified sale points</h3><p>July and August 2026 official HMLR lookups match 246 transactions. OS Open UPRN September 2026 (extracted 14 August 2026) locates all 246; 177 are inside the map bounds. Points do not establish OSM building identity or property boundaries. UPRNs contain OS data © Crown copyright and database rights 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. Licensed under OGL v3.0. <a href="/data/sale-locations.v2.json">Sources, match evidence and checksums ↗</a></p>
     <h3>Schools</h3><p>Open establishments in the map area from the Department for Education’s Get Information about Schools register (extract 18 October 2026), shown at their published locations converted to latitude/longitude (about 5 m). Distances are straight-line, not routes, catchments or admission eligibility. No Ofsted ratings are included. Contains public sector information licensed under the Open Government Licence v3.0. <a href="/data/schools.v1.json">Sources and checksum ↗</a></p>
-    <h3>Not connected yet</h3><p>Verified building associations, EPCs, further Census topics, Ofsted inspection information and Environment Agency flood mapping. Flood polygons will not become unsupported property risk scores.</p>
+    <h3>Flood zones</h3><p>Environment Agency Flood Map for Planning, Flood Zones 2 and 3 for rivers and the sea (dataset revision 20 May 2026, retrieved 18 October 2026): present-day extents that ignore flood defences. They are a planning designation for areas of land, not a flood risk rating for any property, and they exclude surface water, groundwater and reservoirs. Polygons are clipped to the map and simplified to within 4 m, so edges are approximate. © Environment Agency copyright and/or database right 2025. All rights reserved. Licensed under the Open Government Licence. <a href="/data/flood-zones.v1.json">Sources, processing and checksums ↗</a> · <a href="https://check-long-term-flood-risk.service.gov.uk/" target="_blank" rel="noopener">Check a property’s long-term flood risk ↗</a></p>
+    <h3>Not connected yet</h3><p>Verified building associations, EPCs, further Census topics and Ofsted inspection information.</p>
     <p class="fine-note">No tracking, resident profiles, portal scraping or external map requests. Geography: ODbL 1.0. App: MIT. <a href="/data/provenance.json" target="_blank" rel="noopener">Dataset manifest ↗</a></p>`;
   element("#about").onclick = () => dialog.showModal();
   element("#sources-close").onclick = () => dialog.close();
@@ -531,6 +611,14 @@ async function start(): Promise<void> {
             "neighbourhood-fill",
             "visibility",
           ),
+          floodLoaded: flood?.areas.length ?? 0,
+          floodVisible: controller.map.getLayoutProperty(
+            "flood-fz3",
+            "visibility",
+          ),
+          floodRendered: controller.map.queryRenderedFeatures({
+            layers: ["flood-fz2", "flood-fz3"],
+          }).length,
           schoolsLoaded: schools?.schools.length ?? 0,
           schoolsVisible: controller.map.getLayoutProperty(
             "schools-circle",

@@ -1621,3 +1621,13 @@ dialog .provenance {
     font-size: 16px;
   }
 }
+
+#area-legend:not([hidden]) ~ #flood-legend {
+  bottom: 310px;
+}
+@media (max-width: 700px) {
+  #area-legend:not([hidden]) ~ #flood-legend {
+    bottom: auto;
+    top: 330px;
+  }
+}

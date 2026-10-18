@@ -1,6 +1,11 @@
 import { distanceMetres } from "../../shared/geo";
 import type { Lsoa, Neighbourhoods } from "../../shared/neighbourhoods";
 import type { School, Schools } from "../../shared/schools";
+import {
+  CHECK_FLOOD_RISK_URL,
+  type Flood,
+  type FloodHit,
+} from "../../shared/flood";
 import { schoolProvenance, schoolRow } from "./schools";
 import type { Building, Geography, Provenance } from "../../shared/types";
 import {
@@ -82,6 +87,7 @@ export function renderDetails(
       <p class="fine-note">One building can contain several homes. A footprint is not a legal property boundary.</p>
       <details class="area-context" id="area-context"><summary>Neighbourhood statistics <span class="tiny-tag">ONS</span></summary><div id="area-context-body" aria-live="polite">${renderAreaContext({ status: "loading" })}</div></details>
       <details class="area-context" id="schools-context"><summary>Nearby schools <span class="tiny-tag">DfE</span></summary><div id="schools-context-body" aria-live="polite"><p>Open to list the nearest official school locations.</p></div></details>
+      <details class="area-context" id="flood-context"><summary>Flood zone context <span class="tiny-tag">EA</span></summary><div id="flood-context-body" aria-live="polite"><p>Open to compare this footprint with the Environment Agency’s mapped flood zones.</p></div></details>
       ${provenanceHtml(geography.provenance)}
       <span class="record-id">Footprint reference: ${e(building.id)}</span>
     `
@@ -112,6 +118,34 @@ export function renderDetails(
     }
     <button id="save-building" class="secondary full">${saved ? "Remove from comparison" : "Add building to comparison"} ${icon("arrow")}</button>
   `;
+}
+
+export type FloodState =
+  | { status: "loading" }
+  | { status: "error" }
+  | {
+      status: "ready";
+      data: Flood;
+      result: { centre?: FloodHit; outline?: FloodHit };
+    };
+const zoneName = (hit: FloodHit) =>
+  `Flood Zone ${hit.zone === "FZ3" ? "3" : "2"} (${e(hit.source)}, ${e(hit.origin)})`;
+/** Area-of-land planning designation only: never a property risk rating or an all-clear. */
+export function renderFloodContext(state: FloodState): string {
+  if (state.status === "loading")
+    return "<p>Loading Environment Agency flood zones…</p>";
+  if (state.status === "error")
+    return "<p>Flood zones could not load. Close and reopen this section to retry.</p>";
+  const { centre, outline } = state.result;
+  const headline = centre
+    ? `The centre of this footprint lies within mapped <strong>${zoneName(centre)}</strong>.`
+    : outline
+      ? `The footprint’s centre is outside the mapped zones, but part of its outline lies within <strong>${zoneName(outline)}</strong>.`
+      : "Neither the centre nor the outline of this footprint lies within mapped Flood Zone 2 or 3 in this dataset. That is not a statement that it cannot flood.";
+  return `<p class="area-name">${headline}</p>
+    <p>Flood Zones are a planning designation for areas of land: present-day river and sea flooding that ignores flood defences, in England. Zone 3 is a 1% (1 in 100) or greater annual probability from rivers or 0.5% from the sea; Zone 2 is 0.1%–1%. They do not cover surface water, groundwater or reservoirs, and the Environment Agency says they are not suitable for showing whether an individual property is at risk. Polygons here are simplified to within 4 m.</p>
+    <p><a href="${e(CHECK_FLOOD_RISK_URL)}" target="_blank" rel="noopener">Check this address’s long-term flood risk (GOV.UK) ↗</a></p>
+    <div class="provenance"><span class="source-label">SOURCE &amp; SNAPSHOT</span><a href="${e(state.data.source.datasetUrl)}" target="_blank" rel="noopener">${e(state.data.source.name)} ↗</a><small>Revision ${e(state.data.source.datasetRevision)} · retrieved ${e(state.data.source.retrievedOn)} · ${e(state.data.source.licence)}. ${e(state.data.source.attribution)}</small></div>`;
 }
 
 export type SchoolsState =
