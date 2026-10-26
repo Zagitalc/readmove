@@ -16,7 +16,7 @@ F. **Environment:** Stage 11 adds Environment Agency Flood Zones 2 and 3 (rivers
 
 G. **Architecture:** improved procedural residential roofs/materials. Selective licensed GLBs later, with distance-based loading and measured budgets.
 
-H. **Measured usability:** performance, accessibility and mobile improvements based on observed browser/device behaviour. Physical phones, Safari and Firefox remain to be checked.
+H. **Measured usability:** Stage 12 measured load on emulated phones, ran the full browser suite in WebKit and added an automated accessibility gate; see [performance](performance.md). Next: physical iPhone/Android runs, Firefox (Playwright's build cannot start on this Mac), a screen-reader pass, and a decision on coarser or tiled flood geometry from real-device numbers.
 
 No property-portal scraping, paid services, tracking, resident profiles or crime maps. See [source audit](uprn-matching.md) and [verification](verification.md).
 
@@ -27,3 +27,5 @@ Stage 9 replaces the fictional neighbourhood polygons with 217 official ONS 2021
 Stage 10 adds official DfE school locations (151 open establishments, extract 18 October 2026). Next recommended: F (Environment Agency flood-area context), then H (physical-device and Safari/Firefox measurement), with Ofsted inspections following E.
 
 Stage 11 adds Environment Agency flood zones and fixes the nav highlight for Sold prices. Next recommended: H (measured usability: the 3 MB flood asset, 1.6 MB main script, real phones, Safari and Firefox), then dated Ofsted inspection information (E) and more Census topics (D).
+
+Stage 12 records the first measurements: slow-4G phones reach a usable map in about 10 s and the optional flood layer adds about 5 s; WebKit passes the whole suite; the automated accessibility scan is clean after a contrast fix.

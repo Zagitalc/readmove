@@ -132,3 +132,7 @@ those exact codes, caches responses with SHA-256 receipts under ignored
 ## Official flood zones
 
 `npm run data:flood` pages through the Environment Agency OGC API for the map box, caches the raw pages and a checksum manifest under ignored `raw/flood/`, and writes `public/data/flood-zones.v1.json` (3 MB, ~0.6 MB gzipped). `--offline` rebuilds identically from the cache. See [data sources](docs/data-sources.md#flood-zones-implemented).
+
+## Performance and accessibility
+
+`npm run measure` records load timings against a deployed site under throttled phone profiles; `tests/browser/a11y.spec.ts` gates WCAG A/AA axe rules; `PW_WEBKIT=1 npx playwright test --project=webkit-desktop --project=webkit-iphone` runs the suite in WebKit. Results and limits are in [docs/performance.md](docs/performance.md).
