@@ -111,3 +111,20 @@ The extract is a snapshot; closures, openings and mergers after 18 October 2026 
 - **Licence:** © Environment Agency copyright and/or database right 2025. All rights reserved. Licensed under the Open Government Licence.
 
 The extract is a snapshot of an updating dataset; later changes are not reflected until a new import is reviewed and published. 4 m simplification means a point very close to a zone edge may be classified differently from the official service.
+
+### Census household context (Stage 14)
+
+The selected-place panel can show housing tenure (TS054) and households without
+access to a car or van (TS045), as at 21 March 2021. Both are ONS Census 2021
+household tables distributed by [Nomis](https://www.nomisweb.co.uk/sources/census_2021_bulk).
+The asset joins exact December 2021 LSOA codes to the same 217 areas as the
+population and density layer. Percentages use the total in their own source
+table. Nomis notes that disclosure control can cause small differences between
+tables and between totals and their component counts.
+
+To reproduce, place the official `census2021-ts054.zip` and `census2021-ts045.zip`
+downloads in ignored `raw/neighbourhood/` and run `npm run data:households`.
+The importer verifies reviewed archive hashes and reads only the LSOA members.
+The bundled `public/data/households.v1.json` contains the source receipts, counts
+and dates. It loads only when the household section opens. The figures refer to
+the entire LSOA, and Census 2021 provides a dated snapshot.

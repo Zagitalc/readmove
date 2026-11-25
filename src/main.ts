@@ -13,6 +13,7 @@ import {
 } from "./property/data";
 import {
   renderAreaContext,
+  renderHouseholdContext,
   renderFloodContext,
   renderSchoolsContext,
   renderComparison,
@@ -21,6 +22,7 @@ import {
   provenanceHtml,
 } from "./ui/details";
 import { loadNeighbourhoods, neighbourhoodAt } from "./neighbourhood/areas";
+import { loadHouseholds } from "./neighbourhood/households";
 import type { Neighbourhoods } from "../shared/neighbourhoods";
 import { connectSearch } from "./ui/search";
 import { escapeHtml, icon, notice, shell } from "./ui/shell";
@@ -317,6 +319,14 @@ async function start(): Promise<void> {
         area: neighbourhoodAt(position, data),
       };
     });
+    connectContext("households", renderHouseholdContext, async () => {
+      const data = (neighbourhoods ??= await loadNeighbourhoods());
+      const area = neighbourhoodAt(position, data);
+      const counts = area
+        ? (await loadHouseholds()).areas[area.code]
+        : undefined;
+      return { status: "ready" as const, counts };
+    });
     connectContext("schools", renderSchoolsContext, async () => {
       const data = (schools ??= await loadSchools());
       return {
@@ -597,7 +607,7 @@ async function start(): Promise<void> {
     <h3>Real geography</h3><p>${geography.buildingCount.toLocaleString("en-GB")} OpenStreetMap building footprints, roads, water and railways in a bounded greater Reading snapshot. Redistributed from Mini Reading’s ODbL dataset; this is a separate application.</p>${provenanceHtml(geography.provenance)}
     <h3>Illustrative architecture</h3><p>Height uses mapped measurements, mapped storeys, or a deterministic estimate. The panel tells you which. Residential roofs, windows and materials are procedural, not a reconstruction. Flat ground; no surveyed terrain or property boundaries.</p>
     <h3>Clearly marked fixtures</h3><p>Example sale prices, transaction dates and property links are fictional. No fixture is a statement about a real resident or property.</p>
-    <h3>Neighbourhood statistics</h3><p>217 official December 2021 Lower layer Super Output Areas (ONS BGC V5, generalised to 20 m) that intersect the map, with Census 2021 usual residents (TS001) and published population density (TS006) for 21 March 2021. Figures describe whole areas, never an individual home or resident. Boundaries are generalised, so edges are approximate. Source: Office for National Statistics licensed under the Open Government Licence v.3.0. Contains OS data © Crown copyright and database right 2025. <a href="/data/neighbourhoods.v1.json">Sources, editions and checksums ↗</a></p>
+    <h3>Neighbourhood statistics</h3><p>217 official December 2021 Lower layer Super Output Areas (ONS BGC V5, generalised to 20 m) that intersect the map, with Census 2021 usual residents (TS001) and published population density (TS006) for 21 March 2021. The Household context section adds tenure (TS054) and car or van availability (TS045) for those same areas. <a href="/data/households.v1.json">Household table sources and checksums ↗</a>. Figures describe whole areas, never an individual home or resident. Boundaries are generalised, so edges are approximate. Source: Office for National Statistics licensed under the Open Government Licence v.3.0. Contains OS data © Crown copyright and database right 2025. <a href="/data/neighbourhoods.v1.json">Sources, editions and checksums ↗</a></p>
     <h3>Official sold prices</h3><p>6,325 residential transactions in selected Reading-area postcode districts. Partial history; postcode coverage is not exact map coverage. No sale is yet linked to a map building. Source file updated 28 September 2026. Contains HM Land Registry data © Crown copyright and database right 2026. This data is licensed under the Open Government Licence v3.0. <a href="https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads#using-or-publishing-our-price-paid-data" target="_blank" rel="noopener">Source and address-data terms ↗</a></p>
     <h3>Verified sale points</h3><p>July and August 2026 official HMLR lookups match 246 transactions. OS Open UPRN September 2026 (extracted 14 August 2026) locates all 246; 177 are inside the map bounds. Points do not establish OSM building identity or property boundaries. UPRNs contain OS data © Crown copyright and database rights 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. Licensed under OGL v3.0. <a href="/data/sale-locations.v2.json">Sources, match evidence and checksums ↗</a></p>
     <h3>Schools</h3><p>Open establishments in the map area from the Department for Education’s Get Information about Schools register (extract 18 October 2026), shown at their published locations converted to latitude/longitude (about 5 m). Distances are straight-line, not routes, catchments or admission eligibility. No Ofsted ratings are included. Contains public sector information licensed under the Open Government Licence v3.0. <a href="/data/schools.v1.json">Sources and checksum ↗</a></p>

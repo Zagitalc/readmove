@@ -13,7 +13,7 @@ test("research nearby sales and schools without losing the selected place", asyn
   const heading = page.getByRole("heading", { name: "Reading Town Hall" });
   await expect(heading).toBeVisible();
   const area = page.locator("#area-context");
-  await area.locator("summary").click();
+  await area.locator(":scope > summary").click();
   await expect(area).toContainText("Reading 019B");
   await page.getByRole("button", { name: "Nearby sold prices" }).click();
   await expect(page.locator("#sold-heading")).toHaveText(

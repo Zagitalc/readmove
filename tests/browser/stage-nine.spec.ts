@@ -49,5 +49,18 @@ test("official LSOA density layer and building area context load on demand", asy
   await expect(body).toContainText(/E01\d{6}/);
   await expect(body).toContainText("Usual residents");
   await expect(body).toContainText("describe its population as a whole");
-  await page.screenshot({ path: info.outputPath("stage-nine-context.png") });
+  expect(requests.some((url) => url.includes("households.v1"))).toBe(false);
+  await page.locator("#households-context > summary").click();
+  const households = page.locator("#households-context-body");
+  await expect(households).toContainText(
+    "Of 1,091 households in the tenure table",
+  );
+  await expect(households).toContainText("773 (70.9%)");
+  await expect(households).toContainText(
+    "Of 1,093 households in the vehicle table",
+  );
+  await expect(households).toContainText("764 (69.9%)");
+  await page.screenshot({
+    path: info.outputPath("stage-fourteen-context.png"),
+  });
 });

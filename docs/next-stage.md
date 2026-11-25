@@ -8,7 +8,7 @@ B. **Comparable exploration:** refine distance/date/type/category controls, add 
 
 C. **Exact property matches:** legitimate free identifier sources, retaining unresolved and ambiguous cases. Keep UPRNs distinct from building footprints, especially flats.
 
-D. **ONS context:** Stage 9 bundles official 2021 LSOA boundaries with Census 2021 usual residents and published density, recording editions, dates and denominators. Next: further Census topics (age, tenure, households, car access) with explicit denominators, and an area-level panel when the map is clicked outside a building.
+D. **ONS context:** Stage 9 bundles official 2021 LSOA boundaries with Census 2021 usual residents and published density, recording editions, dates and denominators. Stage 13 added area selection from the map. Stage 14 adds Census household totals, tenure and car or van availability with explicit denominators. Age remains open.
 
 E. **Schools:** Stage 10 publishes DfE locations with a searchable panel and nearest-schools context. Next: dated Ofsted inspection information as a separate, explicitly framework-labelled source (no composite score). Proximity does not imply admission eligibility.
 
