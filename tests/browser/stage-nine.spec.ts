@@ -48,6 +48,6 @@ test("official LSOA density layer and building area context load on demand", asy
   await expect(body).toContainText(/Reading \d{3}[A-Z]/);
   await expect(body).toContainText(/E01\d{6}/);
   await expect(body).toContainText("Usual residents");
-  await expect(body).toContainText("never this building or its residents");
+  await expect(body).toContainText("describe its population as a whole");
   await page.screenshot({ path: info.outputPath("stage-nine-context.png") });
 });

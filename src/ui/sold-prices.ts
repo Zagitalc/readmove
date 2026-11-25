@@ -1,3 +1,5 @@
+import { distanceMetres } from "../../shared/geo";
+import type { Position } from "../../shared/types";
 import {
   verifiedLocationsSchema,
   type VerifiedLocations,
@@ -31,12 +33,20 @@ export interface SoldMap {
   fit: (points: LocatedSale[]) => void;
   clear: () => void;
 }
-export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
+export type ResearchPlace = { name: string; position: Position };
+
+export function connectSoldPrices(
+  beforeOpen: () => void,
+  map: SoldMap,
+  returnToPlace: () => boolean,
+) {
   const panel = document.querySelector<HTMLElement>("#official-sales")!;
   const open = document.querySelector<HTMLButtonElement>("#sold-open")!;
   let data: PublishedSales | undefined, pending: Promise<void> | undefined;
   let locations: VerifiedLocations | undefined, salesHash: string | undefined;
   let selected: LocatedSale | undefined;
+  let place: ResearchPlace | undefined;
+  let nearbyOnly = false;
   let showPoints = false,
     mappableOnly = false;
   let filters: SoldFilters = defaultSoldFilters();
@@ -45,13 +55,14 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
   const close = () => {
     panel.hidden = true;
     open.setAttribute("aria-expanded", "false");
+    place = undefined;
     map.clear();
   };
   function frame(html: string) {
     panel.innerHTML = `<div class="sold-toolbar"><span>Sold prices</span><button id="sold-close" aria-label="Close sold prices">${icon("close")}</button></div><div class="sold-body">${html}</div>`;
     panel.querySelector<HTMLButtonElement>("#sold-close")!.onclick = () => {
       close();
-      open.focus();
+      if (!returnToPlace()) open.focus();
     };
   }
   function loading(message: string) {
@@ -77,8 +88,18 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
     const identifiers = new Set(
       locations?.identifiers.map((i) => i.transactionId) ?? [],
     );
-    frame(`<div class="eyebrow">HM LAND REGISTRY · REAL TRANSACTIONS</div><h2 id="sold-heading" tabindex="-1">${selected ? esc([selected.sale.address.saon, selected.sale.address.paon].filter(Boolean).join(", ")) : "Official sold prices"}</h2>
-      ${selected ? `<button id="sold-back" class="text-link">Back to sold prices</button>${saleRecord(selected.sale, locations, selected, undefined, false)}<p class="fine-note">Selected official UPRN point. Building link unverified.</p>${saleHistory(data!, locations!, selected)}<button id="sold-fit" class="primary">Fit nearby sales</button><p class="fine-note">Fits this property and all currently filtered comparable sales. Filters alone do not move the map.</p>` : `<p class="fine-note">${esc(data!.source.scope)}. ${data!.counts.residential.toLocaleString("en-GB")} residential transactions in selected Reading-area postcode districts.</p><p class="sold-scope">Addresses are not yet matched to map buildings. Only official in-bounds OS points are mapped. These records are not valuations or live listings.</p>`}
+    const anchor = nearbyOnly ? place : undefined;
+    const localDistances = new Map<string, number>();
+    if (anchor && !selected) {
+      for (const point of located.values()) {
+        const metres = distanceMetres(anchor.position, point.position);
+        if (metres <= 1000) localDistances.set(point.sale.id, metres);
+      }
+    }
+    frame(`${place ? `<p class="fine-note">Researching ${esc(place.name)}</p><button id="sold-return-place" class="text-link place-return">Back to selected place</button>` : ""}<div class="eyebrow">HM LAND REGISTRY · REAL TRANSACTIONS</div><h2 id="sold-heading" tabindex="-1">${selected ? esc([selected.sale.address.saon, selected.sale.address.paon].filter(Boolean).join(", ")) : anchor ? "Sold prices within 1 km" : "Official sold prices"}</h2>
+      ${selected ? `<button id="sold-back" class="text-link">Back to sold prices</button>${saleRecord(selected.sale, locations, selected, undefined, false)}<p class="fine-note">Selected official UPRN point. Building link unverified.</p>${saleHistory(data!, locations!, selected)}<button id="sold-fit" class="primary">Fit nearby sales</button><p class="fine-note">Fits this property and all currently filtered comparable sales. Filters alone do not move the map.</p>` : anchor ? "" : `<p class="fine-note">${esc(data!.source.scope)}. ${data!.counts.residential.toLocaleString("en-GB")} residential transactions in selected Reading-area postcode districts.</p><p class="sold-scope">Addresses are not yet matched to map buildings. Only official in-bounds OS points are mapped. These records are not valuations or live listings.</p>`}
+      ${anchor && !selected ? '<p class="fine-note">Verified sale points from the partial 2025 snapshot. Distances are straight-line from this location.</p><button id="sold-all" class="text-link">Search all sold prices</button>' : ""}
+      ${anchor && !selected ? '<details class="area-context"><summary>Filter and sort nearby sales</summary>' : ""}
       <label class="sold-identifier-filter"><input id="sold-map-points" type="checkbox" ${!locations ? "disabled" : ""} /> Show verified sale points</label>
       <p id="sold-location-status" class="fine-note">${
         locations
@@ -95,8 +116,9 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
       ${selected ? '<p class="fine-note">Nearby sales use straight-line distance and a sparse, partial 2025 history. Same-UPRN transactions are excluded. These are comparison candidates, not a valuation.</p>' : '<p class="fine-note">Category B includes repossessions, identifiable buy-to-lets and transfers to non-private individuals, without identifying which applies. Both categories may be revised or registered late.</p>'}
       <label class="sold-identifier-filter"><input id="sold-identifier-only" type="checkbox" ${!locations || selected ? "disabled" : ""} /> Only with an official UPRN</label>
       <label class="sold-identifier-filter"><input id="sold-mappable-only" type="checkbox" ${!locations || selected ? "disabled" : ""} /> Only with a location inside this map</label>
-      <p id="sold-active-filters" class="fine-note" role="status" aria-live="polite"></p><button id="sold-reset" class="text-link">Reset filters</button><p class="fine-note">Reset restores all types and category A${selected ? ", 1 km and all snapshot dates" : ", with no search or location restrictions"}. Sorting is kept.</p>
-      <div class="comparable-filters"><label>Sort sales<select id="sold-sort">${selected ? '<option value="distance">Nearest first</option>' : ""}<option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label></div>
+      <p id="sold-active-filters" class="fine-note" role="status" aria-live="polite"></p><button id="sold-reset" class="text-link">Reset filters</button><p class="fine-note">Reset restores all types and category A${selected ? ", 1 km and all snapshot dates" : anchor ? ", keeping this location" : ", with no search or location restrictions"}. Sorting is kept.</p>
+      <div class="comparable-filters"><label>Sort sales<select id="sold-sort">${selected || anchor ? '<option value="distance">Nearest first</option>' : ""}<option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label></div>
+      ${anchor && !selected ? "</details>" : ""}
       ${selected ? "<h3>Nearby comparable sales</h3>" : ""}<p id="sold-count" role="status" aria-live="polite"></p><div id="sold-results"></div><button id="sold-more" class="primary">Show more sales</button>${soldProvenance(data!, locations)}`);
     const el = <T extends HTMLElement>(id: string) =>
       panel.querySelector<T>(`#${id}`)!;
@@ -118,7 +140,19 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
       el<HTMLInputElement>("sold-since").value = filters.since;
     }
     const sort = el<HTMLSelectElement>("sold-sort");
-    sort.value = selected ? comparisonSort : discoverySort;
+    sort.value = selected || anchor ? comparisonSort : discoverySort;
+    panel
+      .querySelector<HTMLButtonElement>("#sold-all")
+      ?.addEventListener("click", () => {
+        nearbyOnly = false;
+        render();
+      });
+    panel
+      .querySelector<HTMLButtonElement>("#sold-return-place")
+      ?.addEventListener("click", () => {
+        close();
+        returnToPlace();
+      });
     let limit = 20;
     let mapPoints: LocatedSale[] = [];
     const select = (id: string) => {
@@ -151,13 +185,16 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
             filters.category,
           ).filter(
             (s) =>
+              (!anchor || localDistances.has(s.id)) &&
               (!only.checked || identifiers.has(s.id)) &&
               (!mappable.checked || located.has(s.id)),
           );
-      const distances = new Map(nearby?.map((p) => [p.sale.id, p.distance]));
+      const distances = nearby
+        ? new Map(nearby.map((p) => [p.sale.id, p.distance]))
+        : localDistances;
       const rows = sortSales(
         filteredRows,
-        selected ? comparisonSort : discoverySort,
+        selected || anchor ? comparisonSort : discoverySort,
         distances,
       );
       el("sold-active-filters").textContent = filterSummary(
@@ -206,7 +243,7 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
     query.oninput = type.onchange = category.onchange = only.onchange = change;
     showMap.onchange = mappable.onchange = change;
     sort.onchange = () => {
-      if (selected) comparisonSort = sort.value as SaleSort;
+      if (selected || anchor) comparisonSort = sort.value as SaleSort;
       else discoverySort = sort.value as SaleSort;
       limit = 20;
       refresh();
@@ -249,8 +286,14 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
     if (focus && !panel.hidden)
       el("sold-heading").focus({ preventScroll: true });
   }
-  open.onclick = async () => {
+  async function openSales(anchor?: ResearchPlace) {
     beforeOpen();
+    place = anchor;
+    nearbyOnly = Boolean(anchor);
+    if (anchor) {
+      filters.query = "";
+      showPoints = true;
+    }
     selected = undefined;
     panel.hidden = false;
     open.setAttribute("aria-expanded", "true");
@@ -289,6 +332,6 @@ export function connectSoldPrices(beforeOpen: () => void, map: SoldMap) {
       }
     })();
     await pending;
-  };
-  return { close, isOpen: () => !panel.hidden };
+  }
+  return { open: openSales, close, isOpen: () => !panel.hidden };
 }

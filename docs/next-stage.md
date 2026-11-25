@@ -29,3 +29,12 @@ Stage 10 adds official DfE school locations (151 open establishments, extract 18
 Stage 11 adds Environment Agency flood zones and fixes the nav highlight for Sold prices. Next recommended: H (measured usability: the 3 MB flood asset, 1.6 MB main script, real phones, Safari and Firefox), then dated Ofsted inspection information (E) and more Census topics (D).
 
 Stage 12 records the first measurements: slow-4G phones reach a usable map in about 10 s and the optional flood layer adds about 5 s; WebKit passes the whole suite; the automated accessibility scan is clean after a contrast fix.
+
+## Stage 13 — research a place on one map
+
+Search for a building or named place, or select an open spot on the map. The
+selected location anchors one detail panel with Census statistics, school
+locations, river and sea flood zones, and nearby sold prices. Sales and schools
+can expand to the full map area and return to the original selection. Population
+density and flood zones are map overlays. Nearby sales are based on distance to
+verified sale points; building-to-transaction joins remain open.
