@@ -28,6 +28,8 @@ export class MapController {
   private labels: maplibre.Marker[] = [];
   private comparables: maplibre.Marker[] = [];
   private selected?: string;
+  private placeMarker?: maplibre.Marker;
+  onPlace?: (position: Position) => void;
   onSchool?: (urn: string) => void;
 
   constructor(
@@ -112,6 +114,7 @@ export class MapController {
           layers: ["building-overview", "footprints"],
         })[0]?.properties.id;
       if (typeof id === "string") onSelect(id);
+      else this.onPlace?.(event.lngLat.toArray());
     });
     this.map.on("mousemove", (event) => {
       this.map.getCanvas().style.cursor = this.map.queryRenderedFeatures(
@@ -154,6 +157,17 @@ export class MapController {
       building?.id ?? "",
     ]);
     if (building && fly) this.focus(centre(building.rings), 17.7);
+  }
+  markPlace(position?: Position): void {
+    this.placeMarker?.remove();
+    this.placeMarker = undefined;
+    if (!position) return;
+    const marker = document.createElement("div");
+    marker.className = "map-place-pin";
+    marker.setAttribute("aria-hidden", "true");
+    this.placeMarker = new maplibre.Marker({ element: marker })
+      .setLngLat(position)
+      .addTo(this.map);
   }
   focus(position: Position, zoom = 16.8): void {
     const mobile = matchMedia("(max-width: 700px)").matches;
@@ -263,6 +277,7 @@ export class MapController {
     return matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 800;
   }
   destroy(): void {
+    this.markPlace();
     this.comparables.forEach((m) => m.remove());
     this.labels.forEach((m) => m.remove());
     this.map.remove();

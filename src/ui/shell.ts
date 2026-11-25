@@ -23,22 +23,18 @@ export function shell(): void {
       <span class="region">${icon("pin")} Reading <span>· Berkshire</span></span>
       <button id="compare-open" class="compare-button" aria-label="Open saved building comparison">Compare <span id="compare-count">0</span></button>
     </header>
-    <nav class="modes" aria-label="Map modes">
+    <nav class="modes" aria-label="Map tools">
       <button data-mode="explore" aria-pressed="true">Explore</button>
-      <button data-mode="property" aria-pressed="false">Property</button>
       <button data-mode="neighbourhood" aria-pressed="false">Neighbourhood</button>
       <button data-mode="flood" aria-pressed="false">Flood</button>
       <button id="schools-open" data-mode="schools" aria-pressed="false" aria-expanded="false" aria-controls="schools-panel">Schools</button>
       <button id="sold-open" aria-expanded="false" aria-controls="official-sales">Sold prices</button>
     </nav>
     <aside id="intro" class="intro">
-      <div class="eyebrow"><span class="dot"></span> A CLOSER LOOK AT READING</div>
-      <h1>A home is more<br>than four walls.</h1>
-      <p>Explore the buildings.<br>Get a feel for the neighbourhood.<br>See the place around a home.</p>
+      <h1>Explore Reading</h1>
+      <p>Search for a place or select a spot on the map to see nearby sales, schools, Census figures and flood zones.</p>
       <button id="example" class="primary">Explore an example ${icon("arrow")}</button>
-      <span class="intro-foot">Real geography. Clearly labelled sample sales.</span>
-      <div class="intro-divider"></div>
-      <span class="map-hint">Click a building to take a closer look.</span>
+      <span class="intro-foot">The example uses fictional sales.</span>
     </aside>
     <section id="details" class="details" aria-label="Building details" hidden></section>
     <section id="official-sales" class="details" aria-label="Official sold prices" hidden></section>

@@ -73,7 +73,7 @@ test("local 3D geography loads without provider calls or JavaScript errors", asy
     await page.evaluate(() => window.__readmove.snapshot().footprints),
   ).toBeGreaterThan(5000);
   await expect(
-    page.getByRole("heading", { name: "A home is more than four walls." }),
+    page.getByRole("heading", { name: "Explore Reading" }),
   ).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("overview.png") });
   expect(errors).toEqual([]);

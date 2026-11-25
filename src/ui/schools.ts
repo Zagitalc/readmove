@@ -1,3 +1,5 @@
+import { distanceMetres } from "../../shared/geo";
+import type { ResearchPlace } from "./sold-prices";
 import { GIAS_RECORD, type School, type Schools } from "../../shared/schools";
 import {
   ageLabel,
@@ -28,10 +30,13 @@ export function connectSchools(
   hooks: {
     onSelect: (school: School | undefined) => void;
     onData: (data: Schools) => void;
+    returnToPlace: () => boolean;
   },
 ) {
   const panel = document.querySelector<HTMLElement>("#schools-panel")!;
   let data: Schools | undefined;
+  let place: ResearchPlace | undefined;
+  let nearbyOnly = false;
   let filters = defaultSchoolFilters();
   let shown = PAGE,
     selected: string | undefined;
@@ -39,7 +44,8 @@ export function connectSchools(
     panel.innerHTML = `<div class="sold-toolbar"><span>Schools</span><button id="schools-close" aria-label="Close schools">${icon("close")}</button></div><div class="sold-body">${html}</div>`;
     panel.querySelector<HTMLButtonElement>("#schools-close")!.onclick = () => {
       close();
-      document.querySelector<HTMLButtonElement>("#schools-open")?.focus();
+      if (!hooks.returnToPlace())
+        document.querySelector<HTMLButtonElement>("#schools-open")?.focus();
     };
   };
   const close = () => {
@@ -48,13 +54,28 @@ export function connectSchools(
       .querySelector("#schools-open")
       ?.setAttribute("aria-expanded", "false");
     selected = undefined;
+    place = undefined;
     hooks.onSelect(undefined);
+  };
+  const matchingSchools = () => {
+    const matches = filterSchools(data!.schools, filters);
+    const anchor = nearbyOnly ? place : undefined;
+    if (!anchor)
+      return matches.map((school) => ({ school, metres: undefined }));
+    return matches
+      .map((school) => ({
+        school,
+        metres: distanceMetres(anchor.position, school.position),
+      }))
+      .filter(({ metres }) => metres <= 1500)
+      .sort((a, b) => a.metres - b.metres);
   };
   function render(focus?: string) {
     if (!data) return;
-    const matches = filterSchools(data.schools, filters);
+    const matches = matchingSchools();
     const list = matches.slice(0, shown);
-    frame(`<div class="eyebrow">OFFICIAL SCHOOL LOCATIONS</div><h2 tabindex="-1" id="schools-heading">Schools in the map area</h2>
+    frame(`${place ? `<p class="fine-note">Researching ${e(place.name)}</p><button id="schools-return-place" class="text-link place-return">Back to selected place</button>` : ""}<div class="eyebrow">OFFICIAL SCHOOL LOCATIONS</div><h2 tabindex="-1" id="schools-heading">${nearbyOnly ? "Schools within 1.5 km" : "Schools in the map area"}</h2>
+      ${nearbyOnly ? '<button id="schools-all" class="text-link">Browse all schools</button>' : ""}
       <p class="sold-scope">Open establishments from the Department for Education register, shown at their published locations. Distance is not a route, catchment or admission eligibility. No inspection ratings are included yet.</p>
       <label class="sold-search-label" for="schools-query">Search name, postcode or URN</label>
       <input id="schools-query" type="search" autocomplete="off" value="${e(filters.query)}" />
@@ -69,9 +90,21 @@ export function connectSchools(
         .join("")}</select>
       <p id="schools-count" class="fine-note" role="status">${matches.length.toLocaleString("en-GB")} of ${data.schools.length} schools${matches.length > list.length ? ` · showing ${list.length}` : ""}</p>
       ${matches.length ? "" : '<p class="fine-note">No schools match. Establishments outside the map box or without a published location are not listed.</p>'}
-      <ol class="school-list">${list.map((s) => `<li class="sold-record school-record${s.urn === selected ? " selected" : ""}" data-urn="${e(s.urn)}">${schoolRow(s)}<button class="secondary" data-school="${e(s.urn)}" aria-pressed="${s.urn === selected}">Show on map</button></li>`).join("")}</ol>
+      <ol class="school-list">${list.map(({ school: s, metres }) => `<li class="sold-record school-record${s.urn === selected ? " selected" : ""}" data-urn="${e(s.urn)}">${schoolRow(s, metres)}<button class="secondary" data-school="${e(s.urn)}" aria-pressed="${s.urn === selected}">Show on map</button></li>`).join("")}</ol>
       ${matches.length > list.length ? '<button id="schools-more" class="secondary full">Show more schools</button>' : ""}
       ${schoolProvenance(data)}`);
+    panel
+      .querySelector<HTMLButtonElement>("#schools-all")
+      ?.addEventListener("click", () => {
+        nearbyOnly = false;
+        render("#schools-heading");
+      });
+    panel
+      .querySelector<HTMLButtonElement>("#schools-return-place")
+      ?.addEventListener("click", () => {
+        close();
+        hooks.returnToPlace();
+      });
     const query = panel.querySelector<HTMLInputElement>("#schools-query")!;
     query.oninput = () => {
       filters.query = query.value;
@@ -107,8 +140,14 @@ export function connectSchools(
         el.setSelectionRange(el.value.length, el.value.length);
     }
   }
-  async function open() {
+  async function open(anchor?: ResearchPlace) {
     beforeOpen();
+    place = anchor;
+    nearbyOnly = Boolean(anchor);
+    if (anchor) {
+      filters = defaultSchoolFilters();
+      shown = PAGE;
+    }
     panel.hidden = false;
     document
       .querySelector("#schools-open")
@@ -125,7 +164,7 @@ export function connectSchools(
           '<h2>Schools</h2><p role="alert">School data could not load.</p><button id="schools-retry" class="secondary">Try again</button>',
         );
         panel.querySelector<HTMLButtonElement>("#schools-retry")!.onclick =
-          () => void open();
+          () => void open(place);
         return;
       }
       // Closed while loading: leave it closed.
@@ -137,16 +176,19 @@ export function connectSchools(
     });
   }
   /** Map click on a school marker. */
-  function select(urn: string) {
-    if (!data) return;
-    const index = filterSchools(data.schools, filters).findIndex(
-      (s) => s.urn === urn,
-    );
-    if (index >= shown) shown = index + 1;
-    if (panel.hidden) {
-      beforeOpen();
-      panel.hidden = false;
+  async function select(urn: string, anchor?: ResearchPlace) {
+    if (panel.hidden) await open(anchor);
+    if (!data || panel.hidden) return;
+    let index = matchingSchools().findIndex(({ school }) => school.urn === urn);
+    if (index < 0) {
+      nearbyOnly = false;
+      filters = defaultSchoolFilters();
+      index = matchingSchools().findIndex(({ school }) => school.urn === urn);
     }
+    if (index >= shown) shown = index + 1;
+    document
+      .querySelector("#schools-open")
+      ?.setAttribute("aria-expanded", "true");
     selected = urn;
     hooks.onSelect(data.schools.find((s) => s.urn === urn));
     render();

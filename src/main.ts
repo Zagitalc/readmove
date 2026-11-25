@@ -1,6 +1,7 @@
 import "./style.css";
-import { centre } from "../shared/geo";
-import type { Building } from "../shared/types";
+import { centre, inBounds } from "../shared/geo";
+import type { Building, Position } from "../shared/types";
+import { REGION } from "../shared/config";
 import type { ComparableFilters } from "./property/comparables";
 import { MapController, type Layers } from "./map/controller";
 import {
@@ -16,6 +17,7 @@ import {
   renderSchoolsContext,
   renderComparison,
   renderDetails,
+  renderMapPlace,
   provenanceHtml,
 } from "./ui/details";
 import { loadNeighbourhoods, neighbourhoodAt } from "./neighbourhood/areas";
@@ -24,11 +26,11 @@ import { connectSearch } from "./ui/search";
 import { escapeHtml, icon, notice, shell } from "./ui/shell";
 
 import { SalePoints } from "./map/sale-points";
-import { connectSoldPrices } from "./ui/sold-prices";
+import { connectSoldPrices, type ResearchPlace } from "./ui/sold-prices";
 import { connectSchools } from "./ui/schools";
 import { loadSchools, nearbySchools } from "./schools/schools";
 import { loadFlood } from "./flood/flood";
-import { footprintFlood, type Flood } from "../shared/flood";
+import { floodZoneAt, footprintFlood, type Flood } from "../shared/flood";
 import type { Schools } from "../shared/schools";
 
 shell();
@@ -53,6 +55,10 @@ async function start(): Promise<void> {
   let selected: Building | undefined,
     tab: "building" | "sales" = "building",
     sampleEnabled = false;
+  let place: ResearchPlace | undefined;
+  let returnCamera:
+    | { center: Position; zoom: number; pitch: number; bearing: number }
+    | undefined;
   const salesFilters: ComparableFilters = {
     radiusMetres: 500,
     maxAgeMonths: 60,
@@ -103,72 +109,115 @@ async function start(): Promise<void> {
   );
 
   const salePoints = new SalePoints(controller.map);
-  const soldPrices = connectSoldPrices(() => {
-    closePanels();
-    intro.hidden = true;
-  }, salePoints);
-
-  const schoolsPanel = connectSchools(
-    () => {
-      closePanels(false);
-      intro.hidden = true;
-    },
-    {
-      onSelect: (school) => controller.highlightSchool(school, !!school),
-      onData: (data) => {
-        schools = data;
-        controller.showSchools(data);
-      },
-    },
+  const soldPrices = connectSoldPrices(
+    () => openTool("sales"),
+    salePoints,
+    restorePlace,
   );
-  controller.onSchool = (urn) => {
-    if (!schools) return;
-    layers.schools = true;
-    schoolsPanel.select(urn);
+  const schoolsPanel = connectSchools(() => openTool("schools"), {
+    onSelect: (school) => controller.highlightSchool(school, !!school),
+    onData: (data) => {
+      schools = data;
+      controller.showSchools(data);
+    },
+    returnToPlace: restorePlace,
+  });
+  controller.onSchool = (urn) => void schoolsPanel.select(urn, place);
+  controller.onPlace = (position) => {
+    if (inBounds(position, REGION.bounds))
+      selectPlace("Selected location", position);
   };
 
-  function closePanels(restoreIntro = true): void {
-    schoolsPanel.close();
-    soldPrices.close();
+  function openTool(tool: "sales" | "schools" | "comparison"): void {
+    if (place && !returnCamera) {
+      const map = controller.map;
+      returnCamera = {
+        center: map.getCenter().toArray(),
+        zoom: map.getZoom(),
+        pitch: map.getPitch(),
+        bearing: map.getBearing(),
+      };
+    }
+    if (tool !== "schools") schoolsPanel.close();
+    if (tool !== "sales") soldPrices.close();
     selectionRequest++;
     details.removeAttribute("aria-busy");
     details.hidden = true;
     comparison.hidden = true;
-    intro.hidden = !restoreIntro;
-    selected = undefined;
-    controller.select(undefined);
+    intro.hidden = true;
     controller.showComparables([], select);
   }
+  function closePanels(): void {
+    openTool("comparison");
+    intro.hidden = false;
+    selected = undefined;
+    place = undefined;
+    returnCamera = undefined;
+    controller.select(undefined);
+    controller.markPlace();
+  }
+  function restorePlace(): boolean {
+    if (!place) {
+      intro.hidden = true;
+      return false;
+    }
+    const opened = [
+      ...details.querySelectorAll<HTMLDetailsElement>("details[open]"),
+    ]
+      .map((section) => section.id)
+      .filter(Boolean);
+    const scroll = details.querySelector("#place-body")?.scrollTop ?? 0;
+    const camera = returnCamera;
+    returnCamera = undefined;
+    showDetail();
+    for (const id of opened) {
+      const section = document.getElementById(id);
+      if (section instanceof HTMLDetailsElement) section.open = true;
+    }
+    element("#place-body").scrollTop = scroll;
+    if (camera) controller.map.jumpTo(camera);
+    element("#property-heading").focus({ preventScroll: true });
+    return true;
+  }
+  function selectPlace(name: string, position: Position, fly = false): void {
+    closePanels();
+    place = { name, position };
+    controller.markPlace(position);
+    if (fly) controller.focus(position);
+    showDetail();
+    element("#property-heading").focus({ preventScroll: true });
+  }
   function showDetail(): void {
-    if (!selected) return;
+    if (!place) return;
     schoolsPanel.close();
     soldPrices.close();
-    details.innerHTML = renderDetails(
-      selected,
-      geography,
-      demo,
-      sampleEnabled,
-      tab,
-      saved.has(selected.id),
-      salesFilters,
+    if (!selected) {
+      const [lon, lat] = place.position;
+      framePlace(
+        renderMapPlace(place.name, `${lat.toFixed(5)}°, ${lon.toFixed(5)}°`),
+      );
+      showPlaceContext();
+      return;
+    }
+    framePlace(
+      renderDetails(
+        selected,
+        geography,
+        demo,
+        sampleEnabled,
+        tab,
+        saved.has(selected.id),
+        salesFilters,
+      ),
+      "Close building details",
     );
-    details.hidden = false;
-    comparison.hidden = true;
-    intro.hidden = true;
-    fillAreaContext(selected);
-    fillSchoolsContext(selected);
-    fillFloodContext(selected);
-    element("#details-close").onclick = () => {
-      closePanels();
-      element("#search").focus();
-    };
+    showPlaceContext();
     details
       .querySelectorAll<HTMLButtonElement>("[data-tab]")
       .forEach((button) => {
         button.onclick = () => {
           tab = button.dataset.tab as typeof tab;
           showDetail();
-          details.scrollTop = 0;
           element<HTMLButtonElement>(`[data-tab="${tab}"]`).focus();
         };
       });
@@ -232,103 +281,84 @@ async function start(): Promise<void> {
       select,
     );
   }
+  function framePlace(
+    content: string,
+    closeLabel = "Close place details",
+  ): void {
+    details.innerHTML = `<div class="sold-toolbar"><span>Selected place</span><button id="details-close" aria-label="${closeLabel}">${icon("close")}</button></div><div class="sold-body" id="place-body">${content}</div>`;
+  }
+
+  function showPlaceContext(): void {
+    details.hidden = false;
+    comparison.hidden = true;
+    intro.hidden = true;
+    element("#details-close").onclick = () => {
+      closePanels();
+      element("#search").focus();
+    };
+    element("#place-sales").onclick = () => void soldPrices.open(place);
+    element("#place-schools").onclick = () => {
+      layers.schools = true;
+      applyLayers();
+      void schoolsPanel.open(place);
+    };
+    fillPlaceContext(place!.position, selected);
+  }
+
   let neighbourhoods: Neighbourhoods | undefined;
   let schools: Schools | undefined;
   let flood: Flood | undefined;
-  function fillAreaContext(building: Building): void {
-    const body = details.querySelector<HTMLElement>("#area-context-body");
-    if (!body) return;
-    const fill = (data: Neighbourhoods) => {
-      body.innerHTML = renderAreaContext({
-        status: "ready",
+  function fillPlaceContext(position: Position, building?: Building): void {
+    connectContext("area", renderAreaContext, async () => {
+      const data = (neighbourhoods ??= await loadNeighbourhoods());
+      return {
+        status: "ready" as const,
         data,
-        area: neighbourhoodAt(centre(building.rings), data),
-      });
-    };
-    if (neighbourhoods) return fill(neighbourhoods);
-    // Only fetch the area asset once someone asks for area context.
-    const section = details.querySelector<HTMLDetailsElement>("#area-context")!;
-    if (!section.open) {
-      section.addEventListener("toggle", () => fillAreaContext(building), {
-        once: true,
-      });
-      return;
-    }
-    loadNeighbourhoods().then(
-      (data) => {
-        neighbourhoods = data;
-        // The panel may have moved on to another building while loading.
-        if (selected === building && body.isConnected) fill(data);
-      },
-      () => {
-        if (body.isConnected)
-          body.innerHTML = renderAreaContext({ status: "error" });
-      },
-    );
-  }
-  function fillSchoolsContext(building: Building): void {
-    const section =
-      details.querySelector<HTMLDetailsElement>("#schools-context");
-    const body = details.querySelector<HTMLElement>("#schools-context-body");
-    if (!section || !body) return;
-    const fill = (data: Schools) => {
-      body.innerHTML = renderSchoolsContext({
-        status: "ready",
+        area: neighbourhoodAt(position, data),
+      };
+    });
+    connectContext("schools", renderSchoolsContext, async () => {
+      const data = (schools ??= await loadSchools());
+      return {
+        status: "ready" as const,
         data,
-        nearby: nearbySchools(centre(building.rings), data.schools, 1500, 5),
+        nearby: nearbySchools(position, data.schools, 1500, 5),
         radius: 1500,
-      });
-    };
-    const load = () => {
-      if (schools) return fill(schools);
-      body.innerHTML = renderSchoolsContext({ status: "loading" });
-      loadSchools().then(
-        (data) => {
-          schools = data;
-          if (selected === building && body.isConnected) fill(data);
-        },
-        () => {
-          if (body.isConnected)
-            body.innerHTML = renderSchoolsContext({ status: "error" });
-        },
-      );
-    };
-    // The asset is fetched only when someone opens the section.
-    if (section.open) load();
-    else section.addEventListener("toggle", () => section.open && load());
+      };
+    });
+    connectContext("flood", renderFloodContext, async () => {
+      const data = (flood ??= await loadFlood());
+      const result = building
+        ? footprintFlood(position, building.rings[0], data.areas)
+        : { centre: floodZoneAt(position, data.areas) };
+      return { status: "ready" as const, data, result, pointOnly: !building };
+    });
   }
-  function fillFloodContext(building: Building): void {
-    const section = details.querySelector<HTMLDetailsElement>("#flood-context");
-    const body = details.querySelector<HTMLElement>("#flood-context-body");
+
+  function connectContext<T>(
+    key: string,
+    render: (state: T | { status: "loading" | "error" }) => string,
+    load: () => Promise<T>,
+  ): void {
+    const section = details.querySelector<HTMLDetailsElement>(
+      `#${key}-context`,
+    );
+    const body = details.querySelector<HTMLElement>(`#${key}-context-body`);
     if (!section || !body) return;
-    const fill = (data: Flood) => {
-      body.innerHTML = renderFloodContext({
-        status: "ready",
-        data,
-        result: footprintFlood(
-          centre(building.rings),
-          building.rings[0],
-          data.areas,
-        ),
-      });
-    };
-    const load = () => {
-      if (flood) return fill(flood);
-      body.innerHTML = renderFloodContext({ status: "loading" });
-      loadFlood().then(
-        (data) => {
-          flood = data;
-          if (selected === building && body.isConnected) fill(data);
-        },
-        () => {
-          if (body.isConnected)
-            body.innerHTML = renderFloodContext({ status: "error" });
-        },
-      );
-    };
-    // The 3 MB asset is fetched only when someone opens the section.
-    if (section.open) load();
-    else section.addEventListener("toggle", () => section.open && load());
+    let state: "idle" | "loading" | "ready" = "idle";
+    section.addEventListener("toggle", async () => {
+      if (!section.open || state !== "idle") return;
+      state = "loading";
+      body.innerHTML = render({ status: "loading" });
+      try {
+        const result = await load();
+        state = "ready";
+        if (body.isConnected) body.innerHTML = render(result);
+      } catch {
+        state = "idle";
+        if (body.isConnected) body.innerHTML = render({ status: "error" });
+      }
+    });
   }
   async function showAreaLayer(): Promise<void> {
     try {
@@ -353,9 +383,14 @@ async function start(): Promise<void> {
         return;
       }
       selected = building;
+      place = {
+        name: buildingTitle(building),
+        position: centre(building.rings),
+      };
+      returnCamera = undefined;
+      controller.markPlace();
       controller.select(building, fly);
       showDetail();
-      details.scrollTop = 0;
       element("#property-heading").focus({ preventScroll: true });
     } catch {
       if (request === selectionRequest)
@@ -372,8 +407,7 @@ async function start(): Promise<void> {
     select(demo.buildingId);
   }
   function showComparison(): void {
-    schoolsPanel.close();
-    soldPrices.close();
+    openTool("comparison");
     comparison.innerHTML = renderComparison(
       [...saved].map((id) => savedRecords.get(id)!),
     );
@@ -382,7 +416,7 @@ async function start(): Promise<void> {
     intro.hidden = true;
     controller.showComparables([], select);
     element("#comparison-close").onclick = () => {
-      if (selected) showDetail();
+      if (place) restorePlace();
       else closePanels();
       element("#compare-open").focus();
     };
@@ -415,11 +449,7 @@ async function start(): Promise<void> {
       tab = "building";
       select(id);
     },
-    (place) => {
-      closePanels();
-      controller.focus(place.position);
-      notice(place.name);
-    },
+    (place) => selectPlace(place.name, place.position, true),
     () => openExample(),
   );
 
@@ -432,6 +462,7 @@ async function start(): Promise<void> {
     if (layers.schools) void showSchoolLayer();
     element("#flood-legend").hidden = !layers.flood;
     if (layers.flood) void showFloodLayer();
+    syncNav();
   }
   async function showFloodLayer(): Promise<void> {
     try {
@@ -460,60 +491,70 @@ async function start(): Promise<void> {
   for (const key of Object.keys(layers) as (keyof Layers)[])
     element<HTMLInputElement>(`#layer-${key}`).onchange = (event) => {
       layers[key] = (event.target as HTMLInputElement).checked;
+      if (key === "flood" && layers.flood) layers.neighbourhood = false;
+      if (key === "neighbourhood" && layers.neighbourhood) layers.flood = false;
       applyLayers();
     };
-  // The highlighted nav item follows what is actually open: Sold prices or Schools
-  // while their panels are open, otherwise the last chosen map mode.
-  let baseMode = "explore";
   const modeButtons =
     document.querySelectorAll<HTMLButtonElement>("[data-mode]");
   const soldButton = element<HTMLButtonElement>("#sold-open");
   const schoolsButton = element<HTMLButtonElement>("#schools-open");
-  const isOpenButton = (button: HTMLElement) =>
-    button.getAttribute("aria-expanded") === "true";
+  soldButton.onclick = () => {
+    if (soldPrices.isOpen()) {
+      soldPrices.close();
+      restorePlace();
+    } else void soldPrices.open(place);
+  };
   function syncNav(): void {
-    const sold = isOpenButton(soldButton);
-    const active = sold
-      ? "sold"
-      : isOpenButton(schoolsButton)
-        ? "schools"
-        : baseMode;
-    modeButtons.forEach((button) =>
-      button.setAttribute(
-        "aria-pressed",
-        String(button.dataset.mode === active),
+    element('[data-mode="explore"]').setAttribute(
+      "aria-pressed",
+      String(
+        !soldPrices.isOpen() &&
+          !schoolsPanel.isOpen() &&
+          !layers.neighbourhood &&
+          !layers.flood,
       ),
     );
-    soldButton.setAttribute("aria-pressed", String(sold));
+    element('[data-mode="neighbourhood"]').setAttribute(
+      "aria-pressed",
+      String(layers.neighbourhood),
+    );
+    element('[data-mode="flood"]').setAttribute(
+      "aria-pressed",
+      String(layers.flood),
+    );
+    schoolsButton.setAttribute("aria-pressed", String(schoolsPanel.isOpen()));
+    soldButton.setAttribute("aria-pressed", String(soldPrices.isOpen()));
   }
-  new MutationObserver(syncNav).observe(soldButton, {
-    attributes: true,
-    attributeFilter: ["aria-expanded"],
-  });
-  new MutationObserver(syncNav).observe(schoolsButton, {
-    attributes: true,
-    attributeFilter: ["aria-expanded"],
-  });
+  const observer = new MutationObserver(syncNav);
+  for (const button of [soldButton, schoolsButton])
+    observer.observe(button, {
+      attributes: true,
+      attributeFilter: ["aria-expanded"],
+    });
   modeButtons.forEach((button) => {
     button.onclick = () => {
-      const mode = button.dataset.mode!;
-      if (mode !== "schools") baseMode = mode;
-      layers.buildings = true;
-      layers.neighbourhood = mode === "neighbourhood";
-      layers.schools = mode === "schools";
-      layers.flood = mode === "flood";
+      const mode = button.dataset.mode;
+      if (mode === "explore") {
+        layers.neighbourhood = layers.flood = layers.schools = false;
+        if (place) restorePlace();
+        else closePanels();
+      } else if (mode === "schools") {
+        if (schoolsPanel.isOpen()) {
+          schoolsPanel.close();
+          restorePlace();
+        } else {
+          layers.schools = true;
+          void schoolsPanel.open(place);
+        }
+      } else if (mode === "flood") {
+        layers.flood = !layers.flood;
+        if (layers.flood) layers.neighbourhood = false;
+      } else if (mode === "neighbourhood") {
+        layers.neighbourhood = !layers.neighbourhood;
+        if (layers.neighbourhood) layers.flood = false;
+      }
       applyLayers();
-      if (layers.schools) void schoolsPanel.open();
-      else schoolsPanel.close();
-      syncNav();
-      if (mode === "property")
-        notice(
-          "Select a building or search a mapped address. Try the example for sample sales.",
-        );
-      if (layers.neighbourhood)
-        notice(
-          "Census 2021 population density by LSOA. Area-level figures, not individual homes.",
-        );
     };
   });
   syncNav();
@@ -575,9 +616,20 @@ async function start(): Promise<void> {
     element("#layers-panel").hidden = true;
     element("#layers-button").setAttribute("aria-expanded", "false");
     const wasSoldOpen = soldPrices.isOpen();
-    if (!details.hidden || !comparison.hidden || wasSoldOpen) {
+    const wasSchoolsOpen = schoolsPanel.isOpen();
+    if (wasSoldOpen || wasSchoolsOpen || !comparison.hidden) {
+      const opener = wasSoldOpen
+        ? "#sold-open"
+        : wasSchoolsOpen
+          ? "#schools-open"
+          : "#compare-open";
+      if (!restorePlace()) {
+        closePanels();
+        element(opener).focus();
+      }
+    } else if (!details.hidden) {
       closePanels();
-      if (wasSoldOpen) element("#sold-open").focus();
+      element("#search").focus();
     }
   });
   window.addEventListener(

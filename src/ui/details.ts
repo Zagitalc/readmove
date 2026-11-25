@@ -70,12 +70,11 @@ export function renderDetails(
       )
     : [];
   return `
-    <div class="sheet-handle" aria-hidden="true"></div>
-    <button id="details-close" class="close-button" aria-label="Close building details">${icon("close")}</button>
-    <div class="eyebrow">${location ? "EXAMPLE PROPERTY" : "A CLOSER LOOK"}</div>
+    ${location ? '<div class="eyebrow">EXAMPLE PROPERTY</div>' : ""}
     <h2 tabindex="-1" id="property-heading">${location ? "An example home" : e(buildingTitle(building))}</h2>
     <p class="property-location">${e(building.name && building.address ? building.name : "Greater Reading")} · Berkshire</p>
     ${location ? '<div class="fixture-banner"><strong>Demonstration only</strong>Fictional property and sales, placed on a real OSM building. No verified link to an address or dwelling.</div>' : '<span class="mapped-badge"><span class="dot"></span> OpenStreetMap footprint</span>'}
+    ${tab === "building" ? renderPlaceContext() : ""}
     <div class="detail-tabs" aria-label="Detail views"><button data-tab="building" aria-pressed="${tab === "building"}">Building</button><button data-tab="sales" aria-pressed="${tab === "sales"}">${location ? "Sample sales" : "Property data"}</button></div>
     ${
       tab === "building"
@@ -85,9 +84,6 @@ export function renderDetails(
       <h3>The property behind the footprint</h3>
       <dl class="facts"><div><dt>Address</dt><dd>${e(building.address ?? "Not available")}</dd></div><div><dt>UPRN</dt><dd>Not linked</dd></div><div><dt>EPC / floor area</dt><dd>Not connected</dd></div><div><dt>Price per m²</dt><dd>Not available</dd></div></dl>
       <p class="fine-note">One building can contain several homes. A footprint is not a legal property boundary.</p>
-      <details class="area-context" id="area-context"><summary>Neighbourhood statistics <span class="tiny-tag">ONS</span></summary><div id="area-context-body" aria-live="polite">${renderAreaContext({ status: "loading" })}</div></details>
-      <details class="area-context" id="schools-context"><summary>Nearby schools <span class="tiny-tag">DfE</span></summary><div id="schools-context-body" aria-live="polite"><p>Open to list the nearest official school locations.</p></div></details>
-      <details class="area-context" id="flood-context"><summary>Flood zone context <span class="tiny-tag">EA</span></summary><div id="flood-context-body" aria-live="polite"><p>Open to compare this footprint with the Environment Agency’s mapped flood zones.</p></div></details>
       ${provenanceHtml(geography.provenance)}
       <span class="record-id">Footprint reference: ${e(building.id)}</span>
     `
@@ -116,8 +112,26 @@ export function renderDetails(
       <div class="empty-state">${icon("home")}<h3>No verified property records yet</h3><p>Historic sales, EPCs and UPRNs have not been joined to this footprint. Missing data does not mean there have been no sales.</p><button id="open-demo-sales" class="secondary">Try the sample sales workflow ${icon("arrow")}</button></div>
     `
     }
+    ${tab === "sales" ? renderPlaceActions() : ""}
     <button id="save-building" class="secondary full">${saved ? "Remove from comparison" : "Add building to comparison"} ${icon("arrow")}</button>
   `;
+}
+
+function renderPlaceActions(): string {
+  return `<div class="place-actions">
+    <button class="secondary" id="place-sales">Nearby sold prices</button>
+    <button class="secondary" id="place-schools">Schools near here</button>
+  </div>`;
+}
+export function renderPlaceContext(): string {
+  return `${renderPlaceActions()}
+    <details class="area-context" id="area-context"><summary>Neighbourhood statistics <span class="tiny-tag">ONS</span></summary><div id="area-context-body" aria-live="polite"></div></details>
+    <details class="area-context" id="schools-context"><summary>Nearby schools <span class="tiny-tag">DfE</span></summary><div id="schools-context-body" aria-live="polite"></div></details>
+    <details class="area-context" id="flood-context"><summary>Flood zone context <span class="tiny-tag">EA</span></summary><div id="flood-context-body" aria-live="polite"></div></details>`;
+}
+export function renderMapPlace(name: string, coordinates: string): string {
+  return `<h2 id="property-heading" tabindex="-1">${e(name)}</h2>
+    <p class="property-location">${e(coordinates)}</p>${renderPlaceContext()}`;
 }
 
 export type FloodState =
@@ -126,6 +140,7 @@ export type FloodState =
   | {
       status: "ready";
       data: Flood;
+      pointOnly?: boolean;
       result: { centre?: FloodHit; outline?: FloodHit };
     };
 const zoneName = (hit: FloodHit) =>
@@ -137,11 +152,15 @@ export function renderFloodContext(state: FloodState): string {
   if (state.status === "error")
     return "<p>Flood zones could not load. Close and reopen this section to retry.</p>";
   const { centre, outline } = state.result;
-  const headline = centre
-    ? `The centre of this footprint lies within mapped <strong>${zoneName(centre)}</strong>.`
-    : outline
-      ? `The footprint’s centre is outside the mapped zones, but part of its outline lies within <strong>${zoneName(outline)}</strong>.`
-      : "Neither the centre nor the outline of this footprint lies within mapped Flood Zone 2 or 3 in this dataset. That is not a statement that it cannot flood.";
+  const headline = state.pointOnly
+    ? centre
+      ? `This point lies within mapped <strong>${zoneName(centre)}</strong>.`
+      : "This point lies outside mapped Flood Zones 2 and 3 in this dataset."
+    : centre
+      ? `The centre of this footprint lies within mapped <strong>${zoneName(centre)}</strong>.`
+      : outline
+        ? `The footprint’s centre is outside the mapped zones, but part of its outline lies within <strong>${zoneName(outline)}</strong>.`
+        : "Neither the centre nor the outline of this footprint lies within mapped Flood Zone 2 or 3 in this dataset. That is not a statement that it cannot flood.";
   return `<p class="area-name">${headline}</p>
     <p>Flood Zones are a planning designation for areas of land: present-day river and sea flooding that ignores flood defences, in England. Zone 3 is a 1% (1 in 100) or greater annual probability from rivers or 0.5% from the sea; Zone 2 is 0.1%–1%. They do not cover surface water, groundwater or reservoirs, and the Environment Agency says they are not suitable for showing whether an individual property is at risk. Polygons here are simplified to within 4 m.</p>
     <p><a href="${e(CHECK_FLOOD_RISK_URL)}" target="_blank" rel="noopener">Check this address’s long-term flood risk (GOV.UK) ↗</a></p>
@@ -168,7 +187,7 @@ export function renderSchoolsContext(state: SchoolsState): string {
     nearby.length
       ? `<ol class="school-list">${nearby.map(({ school, metres }) => `<li class="school-record">${schoolRow(school, metres)}</li>`).join("")}</ol>`
       : `<p>No open schools are listed within ${(radius / 1000).toLocaleString("en-GB")} km. Establishments without a published location are not shown.</p>`
-  }<p>Straight-line distance from the footprint centre, not a walking route. Nearby does not mean a child can attend: admissions, catchments and places are set by each school and local authority. No inspection ratings are shown.</p>${schoolProvenance(data)}`;
+  }<p>Straight-line distance from the selected location, not a walking route. Nearby does not mean a child can attend: admissions, catchments and places are set by each school and local authority. No inspection ratings are shown.</p>${schoolProvenance(data)}`;
 }
 
 export type AreaState =
@@ -183,17 +202,17 @@ export function renderAreaContext(state: AreaState): string {
   if (state.status === "loading")
     return "<p>Loading official area statistics…</p>";
   if (state.status === "error")
-    return "<p>Official area statistics could not load. Close and reopen the building to retry.</p>";
+    return "<p>Official area statistics could not load. Close and reopen this section to retry.</p>";
   const { data, area } = state;
   if (!area)
-    return "<p>This footprint centre is outside the bundled 2021 LSOA coverage. No area statistics are shown.</p>";
+    return "<p>This location is outside the bundled 2021 LSOA coverage. No area statistics are shown.</p>";
   const [residents, density] = [
     data.statistics.find((s) => s.table === "TS001")!,
     data.statistics.find((s) => s.table === "TS006")!,
   ];
   return `<p class="area-name"><strong>${e(area.name)}</strong> <span class="record-id">${e(area.code)}</span></p>
     <dl class="facts"><div><dt>Usual residents</dt><dd>${whole(area.usualResidents)}</dd></div><div><dt>Residents per km²</dt><dd>${whole(area.residentsPerKm2)}</dd></div></dl>
-    <p>Census 2021 (${e(residents.table)}, ${e(density.table)}) for the whole Lower layer Super Output Area containing this footprint’s centre. LSOAs typically hold 1,000–3,000 people. Values describe the area on Census Day, 21 March 2021, never this building or its residents.</p>
+    <p>Census 2021 (${e(residents.table)}, ${e(density.table)}) for the whole Lower layer Super Output Area containing the selected location. LSOAs typically hold 1,000–3,000 people. Values describe the area on Census Day, 21 March 2021, and describe its population as a whole.</p>
     <p>${data.attribution.map(e).join(". ")}. <a href="${e(data.licensePage)}" target="_blank" rel="noopener">Licence ↗</a></p>`;
 }
 
