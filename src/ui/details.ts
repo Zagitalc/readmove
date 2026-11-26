@@ -1,3 +1,4 @@
+import { AGE_BANDS, type AgeArea } from "../neighbourhood/age";
 import type { HouseholdArea } from "../neighbourhood/households";
 import { distanceMetres } from "../../shared/geo";
 import type { Lsoa, Neighbourhoods } from "../../shared/neighbourhoods";
@@ -127,7 +128,8 @@ function renderPlaceActions(): string {
 export function renderPlaceContext(): string {
   return `${renderPlaceActions()}
     <details class="area-context" id="area-context"><summary>Neighbourhood statistics <span class="tiny-tag">ONS</span></summary><div id="area-context-body" aria-live="polite"></div>
-      <details id="households-context"><summary>Households, tenure and car access</summary><div id="households-context-body" aria-live="polite"></div></details></details>
+      <details id="households-context"><summary>Households, tenure and car access</summary><div id="households-context-body" aria-live="polite"></div></details>
+      <details id="age-context"><summary>Age of residents</summary><div id="age-context-body" aria-live="polite"></div></details></details>
     <details class="area-context" id="schools-context"><summary>Nearby schools <span class="tiny-tag">DfE</span></summary><div id="schools-context-body" aria-live="polite"></div></details>
     <details class="area-context" id="flood-context"><summary>Flood zone context <span class="tiny-tag">EA</span></summary><div id="flood-context-body" aria-live="polite"></div></details>`;
 }
@@ -249,6 +251,25 @@ export function renderHouseholdContext(state: HouseholdState): string {
     <p>Of ${whole(vehicles.total)} households in the vehicle table (TS045).</p>
     <dl class="facts">${fact("No car or van available", vehicles.noCarOrVan, vehicles.total)}</dl>
     <p class="fine-note">Census Day, 21 March 2021. These figures describe the whole neighbourhood. Published totals can differ between tables because ONS adjusts some counts for privacy.</p>`;
+}
+
+type AgeState =
+  { status: "loading" | "error" } | { status: "ready"; counts?: AgeArea };
+
+export function renderAgeContext(state: AgeState): string {
+  if (state.status !== "ready")
+    return state.status === "loading"
+      ? "<p>Loading Census age figures…</p>"
+      : "<p>Age figures could not load. Close and reopen this section to retry.</p>";
+  if (!state.counts)
+    return "<p>Age figures are unavailable for this location.</p>";
+  const { total, bands } = state.counts;
+  return `<p>Of ${whole(total)} usual residents in the age table (TS007A).</p>
+    <dl class="facts">${AGE_BANDS.map(
+      (label, index) =>
+        `<div><dt>${label}</dt><dd>${whole(bands[index])} (${share.format(bands[index] / total)})</dd></div>`,
+    ).join("")}</dl>
+    <p class="fine-note">Census Day, 21 March 2021. The age table and the population summary can have different totals because ONS adjusts some counts for privacy.</p>`;
 }
 
 export function renderComparison(buildings: Building[]): string {

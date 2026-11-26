@@ -60,7 +60,13 @@ test("official LSOA density layer and building area context load on demand", asy
     "Of 1,093 households in the vehicle table",
   );
   await expect(households).toContainText("764 (69.9%)");
+  expect(requests.some((url) => url.includes("age.v1.json"))).toBe(false);
+  await page.locator("#age-context > summary").click();
+  const age = page.locator("#age-context-body");
+  await expect(age).toContainText("Of 2,166 usual residents in the age table");
+  await expect(age.locator("dl > div")).toHaveCount(5);
+  await expect(age).toContainText("1,205 (55.6%)");
   await page.screenshot({
-    path: info.outputPath("stage-fourteen-context.png"),
+    path: info.outputPath("stage-fifteen-context.png"),
   });
 });

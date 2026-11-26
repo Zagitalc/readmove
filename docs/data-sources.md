@@ -128,3 +128,16 @@ The importer verifies reviewed archive hashes and reads only the LSOA members.
 The bundled `public/data/households.v1.json` contains the source receipts, counts
 and dates. It loads only when the household section opens. The figures refer to
 the entire LSOA, and Census 2021 provides a dated snapshot.
+
+### Census age context (Stage 15)
+
+The selected-place panel groups [Nomis TS007A](https://www.nomisweb.co.uk/datasets/c2021ts007a)
+five-year Census bands into ages 0–14, 15–24, 25–44, 45–64 and 65 or over.
+It uses the TS007A total of all usual residents in each December 2021 LSOA as
+the denominator. TS001 population totals can differ because of Census
+disclosure control. The reference date is 21 March 2021.
+
+Place the official `census2021-ts007a.zip` download in ignored
+`raw/neighbourhood/` and run `npm run data:age`. The importer verifies the
+reviewed archive hash and exact 217-area coverage. The bundled
+`public/data/age.v1.json` loads when someone opens **Age of residents**.

@@ -1,11 +1,9 @@
 """Build household context from reviewed NOMIS bulk downloads for December 2021 LSOAs."""
 import argparse
-import csv
-import hashlib
-import io
 import json
 from pathlib import Path
-import zipfile
+
+from census_bulk import mapped_codes, read_counts
 
 SOURCES = {
     "TS054": (
@@ -23,47 +21,15 @@ SOURCES = {
 }
 
 
-def read_counts(archive, table, codes):
-    checksum, prefix, fields = SOURCES[table]
-    with archive.open("rb") as source:
-        if hashlib.file_digest(source, "sha256").hexdigest() != checksum:
-            raise ValueError(f"{table}: unreviewed archive checksum")
-    member = f"census2021-{table.lower()}-lsoa.csv"
-    result = {}
-    columns = {key: prefix + label for key, label in fields.items()}
-    with zipfile.ZipFile(archive) as source, source.open(member) as raw:
-        rows = csv.DictReader(io.TextIOWrapper(raw, encoding="utf-8-sig", newline=""))
-        if not {"date", "geography code", *columns.values()}.issubset(rows.fieldnames or []):
-            raise ValueError(f"{table}: unexpected CSV columns")
-        for row in rows:
-            code = row["geography code"]
-            if code not in codes:
-                continue
-            if code in result or row["date"] != "2021":
-                raise ValueError(f"{table}: duplicate code or unexpected year for {code}")
-            values = {key: int(row[column]) for key, column in columns.items()}
-            if values["total"] <= 0 or any(
-                value < 0 or value > values["total"] for value in values.values()
-            ):
-                raise ValueError(f"{table}: invalid counts for {code}")
-            result[code] = values
-    if codes - result.keys():
-        raise ValueError(f"{table}: missing LSOAs {sorted(codes - result.keys())}")
-    return result
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sources", type=Path, default=Path("raw/neighbourhood"))
     parser.add_argument("--output", type=Path, default=Path("public/data/households.v1.json"))
     args = parser.parse_args()
-    geography = json.loads(Path("public/data/neighbourhoods.v1.json").read_text())
-    codes = {area["code"] for area in geography["areas"]}
-    if geography["geography"]["edition"] != "December 2021" or len(codes) != len(geography["areas"]):
-        raise ValueError("Expected unique December 2021 LSOAs")
+    codes = mapped_codes()
     tables = {
-        table: read_counts(args.sources / f"census2021-{table.lower()}.zip", table, codes)
-        for table in SOURCES
+        table: read_counts(args.sources / f"census2021-{table.lower()}.zip", table, codes, source)
+        for table, source in SOURCES.items()
     }
     asset = {
         "version": 1,
