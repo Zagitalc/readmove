@@ -131,7 +131,7 @@ export function renderPlaceContext(): string {
       <details id="households-context"><summary>Households, tenure and car access</summary><div id="households-context-body" aria-live="polite"></div></details>
       <details id="age-context"><summary>Age of residents</summary><div id="age-context-body" aria-live="polite"></div></details></details>
     <details class="area-context" id="schools-context"><summary>Nearby schools <span class="tiny-tag">DfE</span></summary><div id="schools-context-body" aria-live="polite"></div></details>
-    <details class="area-context" id="flood-context"><summary>Flood zone context <span class="tiny-tag">EA</span></summary><div id="flood-context-body" aria-live="polite"></div></details>`;
+    <details class="area-context" id="flood-context"><summary>Flood zone context <span class="tiny-tag">EA</span></summary><div id="flood-context-body" aria-live="polite"></div><button id="place-surface-water" class="secondary" type="button" aria-pressed="false">Surface water on map</button></details>`;
 }
 export function renderMapPlace(name: string, coordinates: string): string {
   return `<h2 id="property-heading" tabindex="-1">${e(name)}</h2>
