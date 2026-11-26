@@ -3,6 +3,10 @@ import { centre, inBounds } from "../shared/geo";
 import type { Building, Position } from "../shared/types";
 import { REGION } from "../shared/config";
 import type { ComparableFilters } from "./property/comparables";
+import {
+  SURFACE_WATER_DATASET,
+  SURFACE_WATER_REVISION,
+} from "./map/surface-water";
 import { MapController, type Layers } from "./map/controller";
 import {
   buildingTitle,
@@ -80,6 +84,7 @@ async function start(): Promise<void> {
     neighbourhood: false,
     schools: false,
     flood: false,
+    "surface-water": false,
     labels: true,
   };
   const controller = new MapController(geography, (id) => select(id, false));
@@ -306,6 +311,19 @@ async function start(): Promise<void> {
       applyLayers();
       void schoolsPanel.open(place);
     };
+    const surfaceWater = details.querySelector<HTMLButtonElement>(
+      "#place-surface-water",
+    );
+    if (surfaceWater) {
+      surfaceWater.setAttribute(
+        "aria-pressed",
+        String(layers["surface-water"]),
+      );
+      surfaceWater.onclick = () => {
+        setOverlay("surface-water", !layers["surface-water"]);
+        applyLayers();
+      };
+    }
     fillPlaceContext(place!.position, selected);
   }
 
@@ -471,6 +489,13 @@ async function start(): Promise<void> {
     () => openExample(),
   );
 
+  const overlays = ["neighbourhood", "flood", "surface-water"] as const;
+  type Overlay = (typeof overlays)[number];
+  function setOverlay(key: Overlay, visible: boolean): void {
+    if (visible) for (const other of overlays) layers[other] = other === key;
+    else layers[key] = false;
+  }
+
   function applyLayers(): void {
     controller.layers(layers);
     for (const [key, value] of Object.entries(layers))
@@ -480,6 +505,10 @@ async function start(): Promise<void> {
     if (layers.schools) void showSchoolLayer();
     element("#flood-legend").hidden = !layers.flood;
     if (layers.flood) void showFloodLayer();
+    element("#surface-water-legend").hidden = !layers["surface-water"];
+    details
+      .querySelector("#place-surface-water")
+      ?.setAttribute("aria-pressed", String(layers["surface-water"]));
     syncNav();
   }
   async function showFloodLayer(): Promise<void> {
@@ -508,9 +537,10 @@ async function start(): Promise<void> {
   };
   for (const key of Object.keys(layers) as (keyof Layers)[])
     element<HTMLInputElement>(`#layer-${key}`).onchange = (event) => {
-      layers[key] = (event.target as HTMLInputElement).checked;
-      if (key === "flood" && layers.flood) layers.neighbourhood = false;
-      if (key === "neighbourhood" && layers.neighbourhood) layers.flood = false;
+      const checked = (event.target as HTMLInputElement).checked;
+      if (key === "neighbourhood" || key === "flood" || key === "surface-water")
+        setOverlay(key, checked);
+      else layers[key] = checked;
       applyLayers();
     };
   const modeButtons =
@@ -530,7 +560,8 @@ async function start(): Promise<void> {
         !soldPrices.isOpen() &&
           !schoolsPanel.isOpen() &&
           !layers.neighbourhood &&
-          !layers.flood,
+          !layers.flood &&
+          !layers["surface-water"],
       ),
     );
     element('[data-mode="neighbourhood"]').setAttribute(
@@ -554,7 +585,8 @@ async function start(): Promise<void> {
     button.onclick = () => {
       const mode = button.dataset.mode;
       if (mode === "explore") {
-        layers.neighbourhood = layers.flood = layers.schools = false;
+        for (const overlay of overlays) layers[overlay] = false;
+        layers.schools = false;
         if (place) restorePlace();
         else closePanels();
       } else if (mode === "schools") {
@@ -566,11 +598,9 @@ async function start(): Promise<void> {
           void schoolsPanel.open(place);
         }
       } else if (mode === "flood") {
-        layers.flood = !layers.flood;
-        if (layers.flood) layers.neighbourhood = false;
+        setOverlay("flood", !layers.flood);
       } else if (mode === "neighbourhood") {
-        layers.neighbourhood = !layers.neighbourhood;
-        if (layers.neighbourhood) layers.flood = false;
+        setOverlay("neighbourhood", !layers.neighbourhood);
       }
       applyLayers();
     };
@@ -620,6 +650,7 @@ async function start(): Promise<void> {
     <h3>Verified sale points</h3><p>July and August 2026 official HMLR lookups match 246 transactions. OS Open UPRN September 2026 (extracted 14 August 2026) locates all 246; 177 are inside the map bounds. Points do not establish OSM building identity or property boundaries. UPRNs contain OS data © Crown copyright and database rights 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. Licensed under OGL v3.0. <a href="/data/sale-locations.v2.json">Sources, match evidence and checksums ↗</a></p>
     <h3>Schools</h3><p>Open establishments in the map area from the Department for Education’s Get Information about Schools register (extract 18 October 2026), shown at their published locations converted to latitude/longitude (about 5 m). Distances are straight-line, not routes, catchments or admission eligibility. No Ofsted ratings are included. Contains public sector information licensed under the Open Government Licence v3.0. <a href="/data/schools.v1.json">Sources and checksum ↗</a></p>
     <h3>Flood zones</h3><p>Environment Agency Flood Map for Planning, Flood Zones 2 and 3 for rivers and the sea (dataset revision 20 May 2026, retrieved 18 October 2026): present-day extents that ignore flood defences. They are a planning designation for areas of land, not a flood risk rating for any property, and they exclude surface water, groundwater and reservoirs. Polygons are clipped to the map and simplified to within 4 m, so edges are approximate. © Environment Agency copyright and/or database right 2025. All rights reserved. Licensed under the Open Government Licence. <a href="/data/flood-zones.v1.json">Sources, processing and checksums ↗</a> · <a href="https://check-long-term-flood-risk.service.gov.uk/" target="_blank" rel="noopener">Check a property’s long-term flood risk ↗</a></p>
+    <h3>Surface water</h3><p>Environment Agency present-day planning extents (revision ${SURFACE_WATER_REVISION}), shown as a fixed-resolution map snapshot. The annual chances describe modelled extents for areas of land. For an address, use the official long-term flood risk service. <a href="${SURFACE_WATER_DATASET}" target="_blank" rel="noopener">Surface water source ↗</a></p>
     <h3>Not connected yet</h3><p>Verified building associations, EPCs, further Census topics and Ofsted inspection information.</p>
     <p class="fine-note">No tracking, resident profiles, portal scraping or external map requests. Geography: ODbL 1.0. App: MIT. <a href="/data/provenance.json" target="_blank" rel="noopener">Dataset manifest ↗</a></p>`;
   element("#about").onclick = () => dialog.showModal();
@@ -681,6 +712,15 @@ async function start(): Promise<void> {
             "neighbourhood-fill",
             "visibility",
           ),
+          surfaceWaterVisible: controller.map.getLayer("surface-water")
+            ? (controller.map.getLayoutProperty(
+                "surface-water",
+                "visibility",
+              ) ?? "visible")
+            : "none",
+          surfaceWaterLoaded: controller.map.getSource("surface-water")
+            ? controller.map.isSourceLoaded("surface-water")
+            : false,
           floodLoaded: flood?.areas.length ?? 0,
           floodVisible: controller.map.getLayoutProperty(
             "flood-fz3",

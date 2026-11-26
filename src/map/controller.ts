@@ -11,6 +11,7 @@ import type { Flood } from "../../shared/flood";
 import type { School, Schools } from "../../shared/schools";
 import { BuildingLayer } from "../scene/layer";
 import { mapStyle, buildingFeatures } from "./style";
+import { surfaceWaterSource } from "./surface-water";
 import { BuildingRepository } from "./repository";
 
 maplibre.setWorkerUrl(workerUrl);
@@ -19,6 +20,7 @@ export interface Layers {
   neighbourhood: boolean;
   schools: boolean;
   flood: boolean;
+  "surface-water": boolean;
   labels: boolean;
 }
 export class MapController {
@@ -214,12 +216,34 @@ export class MapController {
         "visibility",
         layers.flood ? "visible" : "none",
       );
+    this.showSurfaceWater(layers["surface-water"]);
     this.map.setLayoutProperty(
       "schools-circle",
       "visibility",
       layers.schools ? "visible" : "none",
     );
     for (const label of this.labels) label.getElement().hidden = !layers.labels;
+  }
+  private showSurfaceWater(visible: boolean): void {
+    const layer = "surface-water";
+    if (this.map.getLayer(layer)) {
+      this.map.setLayoutProperty(
+        layer,
+        "visibility",
+        visible ? "visible" : "none",
+      );
+    } else if (visible) {
+      this.map.addSource(layer, surfaceWaterSource);
+      this.map.addLayer(
+        {
+          id: layer,
+          type: "raster",
+          source: layer,
+          paint: { "raster-opacity": 0.76, "raster-fade-duration": 0 },
+        },
+        "road-edge",
+      );
+    }
   }
   showAreas(data: Neighbourhoods): void {
     (this.map.getSource("areas") as maplibre.GeoJSONSource).setData(

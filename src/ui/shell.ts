@@ -1,3 +1,8 @@
+import {
+  SURFACE_WATER_DATASET,
+  SURFACE_WATER_REVISION,
+  SURFACE_WATER_SCENARIOS,
+} from "../map/surface-water";
 import { DENSITY_BREAKS, DENSITY_COLOURS } from "../neighbourhood/areas";
 export const icon = (
   name: "search" | "home" | "layers" | "arrow" | "close" | "pin",
@@ -53,12 +58,18 @@ export function shell(): void {
       <label>3D buildings<input type="checkbox" id="layer-buildings" checked /></label>
       <label>Place labels<input type="checkbox" id="layer-labels" checked /></label>
       <label>Population density <span class="tiny-tag">CENSUS 2021</span><input type="checkbox" id="layer-neighbourhood" /></label>
-      <label>Flood zones <span class="tiny-tag">EA</span><input type="checkbox" id="layer-flood" /></label>
+      <label>River and sea flood zones <span class="tiny-tag">EA</span><input type="checkbox" id="layer-flood" /></label>
+      <label>Surface water <span class="tiny-tag">EA</span><input type="checkbox" id="layer-surface-water" /></label>
       <label>Schools <span class="tiny-tag">DfE</span><input type="checkbox" id="layer-schools" /></label>
       <p>Official ONS 2021 LSOAs. Area-level figures only. Flood zones are a planning designation, not a property risk. Schools are DfE locations, not catchments.</p>
     </section>
     <div id="area-legend" class="area-legend" hidden><strong>Usual residents per km²</strong><ol class="density-scale">${DENSITY_COLOURS.map((colour, i) => `<li><i style="background:${colour}"></i>${i === 0 ? `Under ${DENSITY_BREAKS[0].toLocaleString("en-GB")}` : i === DENSITY_BREAKS.length ? `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}+` : `${DENSITY_BREAKS[i - 1].toLocaleString("en-GB")}–${(DENSITY_BREAKS[i] - 1).toLocaleString("en-GB")}`}</li>`).join("")}</ol><small>Census 2021 · ONS LSOA areas · not individual homes</small></div>
     <div id="flood-legend" class="area-legend" hidden><strong>Rivers and sea flood zones</strong><ol class="density-scale"><li><i style="background:#2f6f9f"></i>Flood Zone 3 · 1 in 100+ rivers, 1 in 200+ sea</li><li><i style="background:#8fb9d6"></i>Flood Zone 2 · down to 1 in 1,000</li></ol><small>Environment Agency · present day · ignores defences · a planning designation, not a property risk</small></div>
+    <div id="surface-water-legend" class="area-legend" hidden>
+      <strong>Surface water · annual chance</strong>
+      <ol class="density-scale">${SURFACE_WATER_SCENARIOS.map(({ colour, caption }) => `<li><i style="background:${colour}"></i>${caption}</li>`).join("")}</ol>
+      <small><a href="${SURFACE_WATER_DATASET}" target="_blank" rel="noopener">Environment Agency ↗</a> · ${SURFACE_WATER_REVISION}<br>Modelled land extents · present day<br>© Environment Agency copyright and/or database right 2025 · OGL</small>
+    </div>
     <div class="place-dock" role="region" aria-label="Explore local places"><span>TAKE A LOOK AROUND</span><div id="place-buttons"></div></div>
     <div class="stream-status"><span id="detail-status" role="status">Loading nearby building detail…</span><button id="retry-detail" hidden>Retry detail</button></div>
     <footer class="map-footer"><span class="dot"></span><span id="geography-status">Loading local geography…</span><button id="about">Sources &amp; notes ↗</button></footer>

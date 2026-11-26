@@ -141,3 +141,29 @@ Place the official `census2021-ts007a.zip` download in ignored
 `raw/neighbourhood/` and run `npm run data:age`. The importer verifies the
 reviewed archive hash and exact 217-area coverage. The bundled
 `public/data/age.v1.json` loads when someone opens **Age of residents**.
+
+### Surface water planning extents (Stage 17)
+
+The separate **Surface water** layer uses the Environment Agency's
+[Flood Map for Planning present-day surface water extents](https://environment.data.gov.uk/dataset/c853dc8c-9371-4a8f-99ea-a1daa023945e).
+The service styles are dated 10 November 2026, and the WMS image was retrieved
+26 November 2026. It shows the three modelled annual exceedance scenarios
+(3.3%, 1%, and 0.1%). These describe land extents. Use the official
+[long-term flood risk check](https://check-long-term-flood-risk.service.gov.uk/)
+for an address. This overlay does not score a selected point or building.
+
+- **Service:** `https://environment.data.gov.uk/geoservices/datasets/c853dc8c-9371-4a8f-99ea-a1daa023945e/wms`.
+- **WMS request:** 1.3.0 GetMap; CRS EPSG:3857; BBOX
+  `-120225.050057,6690572.319792,-93508.372266,6710219.083221`; width 2048,
+  height 1506; image/png, transparent; layers
+  `Surface_Water_Spatial_Planning_1in100_1in1000,Surface_Water_Spatial_Planning_1in30`
+  in that order, with respective style names ending in `_10_11_2026`.
+- **Reviewed PNG SHA-256:** `658587ae099738f8ed6e3ef066ab425bb4df84cfa441ec498eef8dea22a9c157`.
+  Keep the reviewed response at ignored `raw/surface-water/present-day.png`.
+  With Python Pillow installed, `npm run data:surface-water` verifies the hash
+  and converts to lossless WebP, checking that the decoded RGBA pixels match.
+  The bundled WebP SHA-256 is `0a1443487dc5d32ce64a45a07004fc5faaa2c3579445b774c1241d7d1d98aa06`.
+  The rendering is roughly 8 m per pixel locally, so the layer is an overview
+  even at building zoom. The client requests only the local file, on demand.
+- **Licence:** Open Government Licence. © Environment Agency copyright and/or
+  database right 2025. All rights reserved.

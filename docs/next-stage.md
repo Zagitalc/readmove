@@ -12,7 +12,7 @@ D. **ONS context:** Stage 9 bundles official 2021 LSOA boundaries with Census 20
 
 E. **Schools:** Stage 10 publishes DfE locations with a searchable panel and nearest-schools context. Next: dated Ofsted inspection information as a separate, explicitly framework-labelled source (no composite score). Proximity does not imply admission eligibility.
 
-F. **Environment:** Stage 11 adds Environment Agency Flood Zones 2 and 3 (rivers and sea) as area context without property-specific risk scores. Next: separately labelled surface-water extents if their licence and scale suit, and climate-change zones as a distinct, dated layer.
+F. **Environment:** Stage 11 adds Environment Agency Flood Zones 2 and 3 (rivers and sea) as area context without property-specific risk scores. Stage 17 adds a separately labelled present-day surface-water map. Climate-change extents remain a distinct future layer.
 
 G. **Architecture:** improved procedural residential roofs/materials. Selective licensed GLBs later, with distance-based loading and measured budgets.
 

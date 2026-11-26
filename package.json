@@ -25,6 +25,7 @@
     "data:households": "python3 scripts/neighbourhood/households.py",
     "data:neighbourhoods": "tsx scripts/neighbourhood/import.ts",
     "data:schools": "tsx scripts/schools/import.ts",
+    "data:surface-water": "python3 scripts/surface-water/build.py",
     "data:flood": "tsx scripts/flood/import.ts",
     "measure": "tsx scripts/measure/perf.ts"
   },
